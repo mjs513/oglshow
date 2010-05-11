@@ -1,0 +1,13 @@
+From Mike Fletcher:
+
+You probably want to learn to use arrays before you try to learn to
+use vbos (which are basically the same pattern, but with a few extra
+bits to speed it up).  OpenGLContext's tests directory has lots of
+array-based sample drawing code, e.g:
+
+http://bazaar.launchpad.net/~mcfletch/openglcontext/trunk/annotate/1?file_id=gldrawarrays.py-20080920224554-ehwlv3u6uc6sb6e2-234
+
+If you want to try vbos immediately, look at test_vbo here:
+
+http://bazaar.launchpad.net/~mcfletch/pyopengl/trunk/annotate/11?file_id=tests.py-20080920223847-0f1mjne5hvolymkp-159
+
