@@ -1,0 +1,16 @@
+== Install ==
+
+On Windows: download
+http://www.riverbankcomputing.co.uk/static/Downloads/PyQt4/PyQt-Py2.5-gpl-4.4.3-1.exe
+
+On Mandriva: urpmi PyQt4
+
+== Examples ==
+
+Get the sources, and go in the examples/opengl folder
+cd /home/bsergean/src/PyQt-x11-gpl-4.4.3/examples
+ack <pattern>
+
+== Documentation ==
+
+http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/classes.html
