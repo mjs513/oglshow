@@ -83,7 +83,7 @@ class Window(QtGui.QMainWindow):
             sdk.start_conference_as_slave_twisted()
 
     def loadFile(self):
-        settings = QtCore.QSettings("Adobe", APP_NAME)
+        settings = QtCore.QSettings("Oglshow", APP_NAME)
         dn = settings.value("last_dirname").toString()
         if not dn:
             dn = expanduser('~') # $HOME dir or My Documents
