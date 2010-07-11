@@ -23,6 +23,7 @@ obj_read(PyObject *self, PyObject *args)
 
 	PyObject* triangles = PyList_New(0);
 	PyObject* points = PyList_New(0);
+	PyObject* normals = PyList_New(0);
 
 	if (f != NULL) {
 		PyFile_SetBufSize(f, bufsize);
@@ -62,7 +63,7 @@ obj_read(PyObject *self, PyObject *args)
 
 				PyList_Append(triangles, triangle);
 			}
-			else if (cline[0] == 'v') {
+			else if (cline[0] == 'v' && cline[1] == ' ') {
 				double a, b, c;
 				PyObject* vertex = PyList_New(3);
 				sscanf(cline+2, "%lf %lf %lf", &a, &b, &c);
@@ -75,15 +76,29 @@ obj_read(PyObject *self, PyObject *args)
 
 				PyList_Append(points, vertex);
 			}
+			else if (cline[0] == 'v' && cline[1] == 'n') {
+				double a, b, c;
+				PyObject* normal = PyList_New(3);
+				sscanf(cline+3, "%lf %lf %lf", &a, &b, &c);
+
+				// printf("%lf %lf %lf\n", a, b, c);
+
+				PyList_SetItem(normal, 0, PyFloat_FromDouble(a));
+				PyList_SetItem(normal, 1, PyFloat_FromDouble(b));
+				PyList_SetItem(normal, 2, PyFloat_FromDouble(c));
+
+				PyList_Append(normals, normal);
+			}
 		}
 	}
 	fclose(PyFile_AsFile(f));
 
-	PyObject* pair = PyList_New(2);
-	PyList_SetItem(pair, 0, points);
-	PyList_SetItem(pair, 1, triangles);
+	PyObject* tuple = PyList_New(3);
+	PyList_SetItem(tuple, 0, points);
+	PyList_SetItem(tuple, 1, triangles);
+	PyList_SetItem(tuple, 2, normals);
 
-	return pair;
+	return tuple;
 }
 
 typedef double GLdouble;
