@@ -128,8 +128,9 @@ class OglSdk:
 
         if self.do_lighting:
             normals = Numeric.zeros ( (self.vbo_array_size, 3), 'f')
-            from geom_ops import compute_normals
-            sc.normals = compute_normals(sc)
+            if not sc.normals:
+                from geom_ops import compute_normals
+                sc.normals = compute_normals(sc)
 
         i = 0
         for j, t in enumerate(sc.index):
@@ -180,9 +181,10 @@ class OglSdk:
         print glGetString (GL_VENDOR)
         print glGetString (GL_RENDERER)
         print glGetString (GL_VERSION)
-        Extensions = glGetString (GL_EXTENSIONS)
-        for ext in Extensions.split():
-            print ext
+        if False:
+            Extensions = glGetString (GL_EXTENSIONS)
+            for ext in Extensions.split():
+                print ext
 
     def pointer_move(self, m, xstart, ystart, xend, yend):
         if not self.scene: return
@@ -380,6 +382,31 @@ class OglSdk:
                 send_point_to_gl(p3)
 
             glEnd()
+
+        # display normals
+        if False:
+            glBegin(GL_TRIANGLES)
+
+            # Factorisation might be bad for performances
+            def send_point_to_gl(p):
+                # Order: texture, normal, points
+                if False and p.coord_mapping:
+                    glTexCoord2f(*p.coord_mapping)
+                if False and p.normal:
+                    glNormal3f(*p.normal)
+                glVertex3f(*p)
+
+            for t in sc.index:
+                p1 = sc.points[t[0]]
+                p2 = sc.points[t[1]]
+                p3 = sc.points[t[2]]
+
+                send_point_to_gl(p1)
+                send_point_to_gl(p2)
+                send_point_to_gl(p3)
+
+            glEnd()
+
 
     def set_lights(self):
         self.set_default_light()
