@@ -122,7 +122,8 @@ class View:
                 and self.recenterX == 0.0 and self.recenterY == 0.0
 
     def __str__(self):
-        s =  '\nEye %s\n' % str(self.eye)
+        s =  '\nQuat %s\n' % str(self.quat)
+        s += 'Eye %s\n' % str(self.eye)
         s += 'Target %s\n' % str(self.tget)
         s += 'Focal %f\n' % self.focal
         s += 'Roll %f\n' % self.roll
@@ -160,28 +161,45 @@ class Scene:
         def read_geom(input):
             points = []
             index = []
+            normals = []
             for line in open(input):
                 line = line.strip()
                 if line.startswith('#'): continue
 
                 tokens = line.split()
-                if line.startswith('v'):
+                if line.startswith('v '):
                     points.append( map(float, tokens[1:]) )
                 elif line.startswith('f'):
                     # 1 based array, we use 0 based array
                     index.append( map(lambda x: int(x)-1, tokens[1:]) )
+                elif line.startswith('vn'):
+                    normals.append( map(float, tokens[1:]) )
             
-            return points, index
+            return points, index, normals
 
         def read_geom_C(input):
             import cobj
             return cobj.read(input)
 
-        # self.points, self.index = read_geom(fn)
-        self.points, self.index = read_geom_C(fn)
+        try:
+            self.points, self.index, self.normals = read_geom_C(fn)
+        except ImportError:
+            self.points, self.index, self.normals = read_geom(fn)
 
     def write(self, fn, comp_type = None):
-        pass
+        f = open(fn, 'w')
+        for v in self.points:
+            f.write('v %f %f %f\n' % (v[0], v[1], v[2]))
+
+        for n in self.normals:
+            f.write('vn %f %f %f\n' % (n[0][0], n[0][1], n[0][2]))
+            f.write('vn %f %f %f\n' % (n[1][0], n[1][1], n[1][2]))
+            f.write('vn %f %f %f\n' % (n[2][0], n[2][1], n[2][2]))
+
+        for i, t in enumerate(self.index):
+            f.write('f %d/%d %d/%d %d/%d\n' % (t[0]+1, 3*i, t[1]+1, (3*i)+1, t[2]+1, (3*i)+2))
+
+        f.close()
 
     def compute_bb(self):
         bb = BoundingBox()

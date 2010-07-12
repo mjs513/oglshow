@@ -1,5 +1,6 @@
 from math import sqrt, sin, cos, pi, fabs, asin
 from pdb import set_trace
+from copy import deepcopy
 
 from log import logger, quiet
 
@@ -115,6 +116,7 @@ class Trackball:
             P1 = (p1x_u,p1y_u,self.__track_project_to_sphere(p1x_u, p1y_u)) 
             P2 = (p2x_u,p2y_u,self.__track_project_to_sphere(p2x_u, p2y_u))
 
+            # FIXME: this is a cross product, could be simplified
             a = [(P2[1]*P1[2]) - (P2[2]*P1[1]),
                  (P2[2]*P1[0]) - (P2[0]*P1[2]),
                  (P2[0]*P1[1]) - (P2[1]*P1[0])]
@@ -161,14 +163,14 @@ class Trackball:
 		return self.quat.matrix4
 
 def add_quat_wiki(q1, q2):
-    ''' See http://fr.wikipedia.org/wiki/Quaternion#Produit '''
-    a, b, c, d = q1
-    ap, bp, cp, dp = q2
+    ''' http://en.wikipedia.org/wiki/Quaternion '''
+    a1, b1, c1, d1 = q1
+    a2, b2, c2, d2 = q2
 
-    return [a*ap - b*bp - c*cp - d*dp,
-            a*bp + b*ap + c*dp - d*cp,
-            a*cp + c*ap + d*bp - b*dp,
-            a*dp + d*ap + b*cp - c*bp]
+    return [a1*a2 - b1*b2 - c1*c2 - d1*d2,
+            a1*b2 + b1*a2 + c1*d2 - d1*c2,
+            a1*c2 - b1*d2 + c1*a2 + d1*b2,
+            a1*d2 + b1*c2 - c1*b2 + d1*a2]
 
 def vscale(v1, s):
     return map(lambda x: x * s, v1)
@@ -205,7 +207,8 @@ def add_quat(q1, q2):
     # should return $2 = {0.453904808, 0.539393365, 0.203423977, 0.679443836}
     '''
     logger.info('add_quat %s %s' % (str(q1), str(q2)))
-    from copy import deepcopy
+
+    t3 = vcross(q2,q1)
 
     t1 = vcopy(q1)
     t1 = vscale(t1, q2[3])
@@ -213,7 +216,6 @@ def add_quat(q1, q2):
     t2 = vcopy(q2)
     t2 = vscale(t2, q1[3])
 
-    t3 = vcross(q2,q1)
     tf = vadd(t1,t2)
     tf = vadd(t3,tf)
     tf += [None]

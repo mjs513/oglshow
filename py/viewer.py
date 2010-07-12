@@ -8,7 +8,7 @@ from collections import defaultdict
 
 from utils import _err_exit, notYetImplemented, benchmark
 from log import logger, quiet
-from math_utils import add_quat, quaternion_to_matrix, multiply_point_by_matrix, common_quaternion_from_angles, sub, add, norm, distance, Trackball, vcross, vnorm
+from math_utils import add_quat, quaternion_to_matrix, multiply_point_by_matrix, common_quaternion_from_angles, sub, add, norm, distance, Trackball, vcross, vnorm, add_quat_wiki
 
 import sys
 sys.path.insert(0, 'cpython/build/lib.macosx-10.5-i386-2.5')
@@ -78,9 +78,8 @@ class OglSdk:
         self.proj = None
         self.view = None
 
-        self.normal_init = False
         self.show_wireframe = False
-        self.grid = True
+        self.grid = False
 
     def load_file(self, fn, verbose = 0, procedural = False):
 
@@ -89,13 +88,13 @@ class OglSdk:
         # We should use module array instead
         # 
         # VBO are 3 to 4 times faster than display list (random test)
-        self.do_immediate_mode = True
+        self.do_immediate_mode = False
         # self.do_immediate_mode = False # TEST
         self.use_display_list = False
 
-        self.do_vbo = True
-        self.vbo_init = False
         self.do_immediate_mode = False
+        self.do_vbo = not self.do_immediate_mode
+        self.vbo_init = False
 
         # Style
         self.do_lighting = not self.show_wireframe
@@ -117,55 +116,6 @@ class OglSdk:
         if self.grid:
             self.g = Grid(self.scene)
 
-    def compute_normals(self):
-        sc = self.scene
-        # self.normals = len(sc.points) * [None]
-        self.normals     = len(sc.points) * [ [.0, .0, .0] ]
-        triangle_normals = len(sc.index)  * [ [.0, .0, .0] ]
-
-        def hash(p):
-            return .11234 * p[0] + .35678 * p[1] + .67257 * p[2]
-
-        pt_table = defaultdict(list)
-
-        for i, t in enumerate(sc.index):
-            p1 = sc.points[t[0]]
-            p2 = sc.points[t[1]]
-            p3 = sc.points[t[2]]
-
-            pt_table[hash(p1)].append( (i, p1, t[0]) )
-            pt_table[hash(p2)].append( (i, p2, t[1]) )
-            pt_table[hash(p3)].append( (i, p3, t[2]) )
-
-            normal = vcross(sub(p2, p1), sub(p3, p1))
-            normal = vnorm(normal)
-
-            triangle_normals[i] = normal
-
-        for key, value in pt_table.iteritems():
-            # we assume no collisions in the hash
-            point_index = value[0][2]
-            first_point = value[0][1]
-            # if self.normals[point_index] is not None:
-
-            # compute the normal of each triangles around 
-            # TODO should be done just once for each triangle in pre-process
-            normals = []
-
-            for t_index, p, _ in value:
-                assert p == first_point
-                normals.append(triangle_normals[t_index])
-            
-            N = (
-                sum(n[0] for n in normals) / len(normals),
-                sum(n[1] for n in normals) / len(normals),
-                sum(n[2] for n in normals) / len(normals)
-            )
-            # print N
-            self.normals[point_index] = N
-
-        # sys.exit(0)
-
     def setup_vbo(self):
         glInitVertexBufferObjectARB()
         self.VBO_vertex = int(glGenBuffersARB(1))					# Get A Valid Name
@@ -178,9 +128,11 @@ class OglSdk:
 
         if self.do_lighting:
             normals = Numeric.zeros ( (self.vbo_array_size, 3), 'f')
+            from geom_ops import compute_normals
+            sc.normals = compute_normals(sc)
 
         i = 0
-        for t in sc.index:
+        for j, t in enumerate(sc.index):
             p1 = sc.points[t[0]]
             p2 = sc.points[t[1]]
             p3 = sc.points[t[2]]
@@ -200,9 +152,9 @@ class OglSdk:
             # print p1, p2, p3
 
             if self.do_lighting:
-                n1 = self.normals[t[0]]
-                n2 = self.normals[t[1]]
-                n3 = self.normals[t[2]]
+                n1 = sc.normals[j][0]
+                n2 = sc.normals[j][1]
+                n3 = sc.normals[j][2]
 
                 normals [i, 0] = n1[0]
                 normals [i, 1] = n1[1]
@@ -274,7 +226,6 @@ class OglSdk:
             logger.info('quat from trackball %s' % str(view.quat))
 
     def reshape(self, w, h):
-        print 'reshape'
         glViewport(0, 0, w, h)
         self.w = w
         self.h = h
@@ -282,11 +233,6 @@ class OglSdk:
     def render(self):
         if self.w == 0 or self.h == 0: 
             return
-
-        if self.do_lighting and not self.normal_init:
-            with benchmark('compute normals'):
-                self.compute_normals()
-            self.normal_init = True
 
         if self.do_vbo and not self.vbo_init:
             with benchmark('setup vbo'):
