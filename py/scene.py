@@ -161,7 +161,9 @@ class Scene:
         def read_geom(input):
             points = []
             index = []
-            normals = []
+            flat_normals = []
+            normals_index = []
+
             for line in open(input):
                 line = line.strip()
                 if line.startswith('#'): continue
@@ -170,11 +172,28 @@ class Scene:
                 if line.startswith('v '):
                     points.append( map(float, tokens[1:]) )
                 elif line.startswith('f'):
-                    # 1 based array, we use 0 based array
-                    index.append( map(lambda x: int(x)-1, tokens[1:]) )
+                    positions = []
+                    normal_positions = []
+                    for vert in tokens[1:]:
+                        components = vert.split('/')
+                        positions.append( int(components[0]) - 1 )
+                        if len(components) == 3:
+                            normal_positions.append( int(components[2]) - 1 )
+                            
+                    index.append(positions)
+                    if normal_positions:
+                        normals_index.append(normal_positions)
+
                 elif line.startswith('vn'):
-                    normals.append( map(float, tokens[1:]) )
+                    flat_normals.append( map(float, tokens[1:]) )
+
+            normals = [ [flat_normals[n[0]], 
+                         flat_normals[n[1]], 
+                         flat_normals[n[2]]] for n in normals_index ]
             
+            for n in normals:
+                print n
+
             return points, index, normals
 
         def read_geom_C(input):
@@ -182,6 +201,7 @@ class Scene:
             return cobj.read(input)
 
         try:
+            import caca
             self.points, self.index, self.normals = read_geom_C(fn)
         except ImportError:
             self.points, self.index, self.normals = read_geom(fn)
@@ -197,7 +217,7 @@ class Scene:
             f.write('vn %f %f %f\n' % (n[2][0], n[2][1], n[2][2]))
 
         for i, t in enumerate(self.index):
-            f.write('f %d/%d %d/%d %d/%d\n' % (t[0]+1, 3*i, t[1]+1, (3*i)+1, t[2]+1, (3*i)+2))
+            f.write('f %d//%d %d//%d %d//%d\n' % (t[0]+1, 3*i+1, t[1]+1, (3*i)+2, t[2]+1, (3*i)+3))
 
         f.close()
 
