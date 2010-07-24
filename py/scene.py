@@ -13,6 +13,7 @@ from copy import deepcopy
 from platform import uname
 from sys import exit
 import logging
+from sys import maxint
 
 from log import logger, quiet
 from utils import get_username, flatten, benchmark
@@ -22,19 +23,27 @@ from math_utils import quaternion_to_matrix
 from math_utils import distance, add
 
 class BoundingBox:
-    def __init__(self):
+    def __init__(self, A=None, B=None):
         # python print 'inf' for such a number. 
         # Dont know how to specify MAX_FLOAT, use maxint
-        from sys import maxint
-        infinity = maxint
+        if A is None and B is None:
+            infinity = maxint
 
-        self.xmin = infinity
-        self.ymin = infinity
-        self.zmin = infinity
+            self.xmin = infinity
+            self.ymin = infinity
+            self.zmin = infinity
 
-        self.xmax = -1 * infinity
-        self.ymax = -1 * infinity
-        self.zmax = -1 * infinity
+            self.xmax = -1 * infinity
+            self.ymax = -1 * infinity
+            self.zmax = -1 * infinity
+        else:
+            self.xmin = A[0]
+            self.ymin = A[1]
+            self.zmin = A[2]
+
+            self.xmax = B[0]
+            self.ymax = B[1]
+            self.zmax = B[2]
 
     def add_points(self, L):
         ''' L is a list of points - Strangely the copy paste method is
@@ -80,6 +89,32 @@ class BoundingBox:
 
     def min(self): return [self.xmin, self.ymin, self.zmin]
     def max(self): return [self.xmax, self.ymax, self.zmax]
+
+    def is_inside(self, V):
+        return self.xmin <= V[0] <= self.xmax and \
+               self.ymin <= V[1] <= self.ymax and \
+               self.zmin <= V[2] <= self.zmax
+
+    def split(self):
+        xmin = self.xmin
+        ymin = self.ymin
+        zmin = self.zmin
+
+        xmax = self.xmax
+        ymax = self.ymax
+        zmax = self.zmax
+
+        xcen, ycen, zcen = self.center()
+
+        yield BoundingBox( [xmin, ymin, zmin], [xcen, ycen, zcen] )
+        yield BoundingBox( [xmin, ycen, zmin], [xcen, ymax, zcen] )
+        yield BoundingBox( [xcen, ymin, zmin], [xmax, ycen, zcen] )
+        yield BoundingBox( [xcen, ycen, zmin], [xmax, ymax, zcen] )
+
+        yield BoundingBox( [xmin, ymin, zcen], [xcen, ycen, zmax] )
+        yield BoundingBox( [xmin, ycen, zcen], [xcen, ymax, zmax] )
+        yield BoundingBox( [xcen, ymin, zcen], [xmax, ycen, zmax] )
+        yield BoundingBox( [xcen, ycen, zcen], [xmax, ymax, zmax] )
 
     def __str__(self):
         s = '\nxmin %f xmax %f\n' % (self.xmin, self.xmax)
@@ -191,9 +226,6 @@ class Scene:
                          flat_normals[n[1]], 
                          flat_normals[n[2]]] for n in normals_index ]
             
-            for n in normals:
-                print n
-
             return points, index, normals
 
         def read_geom_C(input):
