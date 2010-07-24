@@ -11,10 +11,15 @@ from log import logger, quiet
 from math_utils import add_quat, quaternion_to_matrix, multiply_point_by_matrix, common_quaternion_from_angles, sub, add, norm, distance, Trackball, vcross, vnorm, add_quat_wiki
 
 import sys
-sys.path.insert(0, 'cpython/build/lib.macosx-10.5-i386-2.5')
-from cobj import setup, projall, gethits
+try:
+    sys.path.insert(0, 'cpython/build/lib.macosx-10.5-i386-2.5')
+    from cobj import setup, projall, gethits
+except ImportError:
+    pass
 from picking import do_highlight, do_highlight_C
 from grid import Grid
+from octree import Octree
+from view_utils import draw_bb, draw_octree
 
 import numpy as Numeric
 
@@ -30,9 +35,12 @@ try:
 except ImportError:
     _err_exit('ERROR: PyOpenGL not installed properly.')
 
-class wireframe(object):
-    def __init__(self, color):
-        self.color = color
+class Wireframe(object):
+    def __init__(self, width = None):
+        self.line_width = 3.0
+        if width is not None:
+            self.line_width = width
+
     def __enter__(self):
         # color = [0.10, 0.10, 0.10]
         # glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, color)
@@ -48,7 +56,7 @@ class wireframe(object):
         # Set the render mode to be line rendering with a 
         # thick line width
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE )
-        glLineWidth( 3.0 )
+        glLineWidth( self.line_width )
 
         # Set the colour to be white
         glColor3f( 1.0, 1.0, 1.0 )
@@ -79,7 +87,9 @@ class OglSdk:
         self.view = None
 
         self.show_wireframe = False
-        self.grid = False
+        self.octree = True
+        self.normal_dl = None
+        self.octree_dl = None
 
     def load_file(self, fn, verbose = 0, procedural = False):
 
@@ -100,7 +110,8 @@ class OglSdk:
         self.do_lighting = not self.show_wireframe
 
         from scene import load
-        self.scene = load(fn, verbose)
+        with benchmark('load from disk'):
+            self.scene = load(fn, verbose)
         if not self.scene: return
 
         if self.use_display_list:
@@ -110,11 +121,12 @@ class OglSdk:
         self.trackball = Trackball()
 
         # highlight
-        setup(self.scene.points, self.scene.index)
+        # setup(self.scene.points, self.scene.index)
 
         # Grid setup
-        if self.grid:
-            self.g = Grid(self.scene)
+        if self.octree:
+            with benchmark('build octree'):
+                self.octree = Octree(self.scene)
 
     def setup_vbo(self):
         glInitVertexBufferObjectARB()
@@ -178,7 +190,7 @@ class OglSdk:
             glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.VBO_normal )
             glBufferDataARB( GL_ARRAY_BUFFER_ARB, normals, GL_STATIC_DRAW_ARB );
 
-        print glGetString (GL_VENDOR)
+        # print glGetString (GL_VENDOR)
         print glGetString (GL_RENDERER)
         print glGetString (GL_VERSION)
         if False:
@@ -254,6 +266,7 @@ class OglSdk:
         self.set_matrix(self.scene.views[0])
 
         # Some OpenGL init
+        glEnable(GL_MULTISAMPLE_ARB)
         glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE)
         glEnable(GL_COLOR_MATERIAL)
         glEnable(GL_DEPTH_TEST)
@@ -277,7 +290,7 @@ class OglSdk:
         self.init_context()
         self.render_obj()
         if self.show_wireframe:
-            with wireframe('white'):
+            with Wireframe('white'):
                 self.render_obj()
 
         if self.highlight:
@@ -286,8 +299,23 @@ class OglSdk:
             elif self.highlight_implementation == "CPython":
                 do_highlight_C(self.highlight_cursor, self.scene.index, self.scene.points)
 
-        if self.grid:
-            self.g.draw()
+        if self.octree:
+            if self.octree_dl is not None:
+                glCallList(self.octree_dl)
+            else:
+                self.octree_dl = glGenLists(1)
+                glNewList(self.octree_dl, GL_COMPILE)
+
+                # with viewer.Wireframe('foo'):
+                draw_octree(self.octree)
+
+                glEndList()
+                glCallList(self.octree_dl)
+
+            if False:
+                draw_bb(self.scene.bb)
+                for bb in self.scene.bb.split():
+                    draw_bb(bb)
 
         glFlush()
         if self.SwapBuffer_cb:
@@ -306,8 +334,9 @@ class OglSdk:
         if self.fps_counter == max_value:
             t = time()
             f = (t - self.timer) / 20.
-            logger.warning('frame rendered in %f' % (f))
-            logger.warning('fps %f' % (1. / f))
+            if False:
+                logger.warning('frame rendered in %f' % (f))
+                logger.warning('fps %f' % (1. / f))
             self.timer = t
             self.fps_counter = 0
             self.fps = '%.2f' % (1. / f)
@@ -383,30 +412,38 @@ class OglSdk:
 
             glEnd()
 
-        # display normals
-        if False:
-            glBegin(GL_TRIANGLES)
+        display_normals = False
+        if display_normals:
+            if self.normal_dl is not None:
+                glCallList(self.normal_dl)
+            else:
+                self.normal_dl = glGenLists(1)
+                glNewList(self.normal_dl, GL_COMPILE)
 
-            # Factorisation might be bad for performances
-            def send_point_to_gl(p):
-                # Order: texture, normal, points
-                if False and p.coord_mapping:
-                    glTexCoord2f(*p.coord_mapping)
-                if False and p.normal:
-                    glNormal3f(*p.normal)
-                glVertex3f(*p)
+                glBegin(GL_LINES)
+                glColor3f(0.0, 0.0, 1.0)
 
-            for t in sc.index:
-                p1 = sc.points[t[0]]
-                p2 = sc.points[t[1]]
-                p3 = sc.points[t[2]]
+                def draw_normal(p, n):
+                    glVertex3fv(p)
+                    N = map(lambda x, y: x + y, p, n)
+                    glVertex3fv(N)
 
-                send_point_to_gl(p1)
-                send_point_to_gl(p2)
-                send_point_to_gl(p3)
+                for j, t in enumerate(sc.index):
+                    p1 = sc.points[t[0]]
+                    p2 = sc.points[t[1]]
+                    p3 = sc.points[t[2]]
 
-            glEnd()
+                    n1 = sc.normals[j][0]
+                    n2 = sc.normals[j][1]
+                    n3 = sc.normals[j][2]
+                    
+                    draw_normal(p1, n1)
+                    draw_normal(p2, n2)
+                    draw_normal(p3, n3)
 
+                glEnd()
+                glEndList()
+                glCallList(self.normal_dl)
 
     def set_lights(self):
         self.set_default_light()

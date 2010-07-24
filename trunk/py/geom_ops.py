@@ -55,6 +55,10 @@ def compute_normals(sc):
                 sum(n[1] for n in normals) / len(normals),
                 sum(n[2] for n in normals) / len(normals)
             )
+
+            # normalize normal
+            N = vnorm(N)
+
             # print N
             face_normals.append(N)
 
