@@ -88,5 +88,11 @@ def test5():
         scene.normals = compute_normals(scene)
     scene.write(sys.argv[2])
 
+def test6():
+    from math_utils import rayIntersectsTriangle
+    print rayIntersectsTriangle([.2, .2, 1], [10, 10, 10], # [0, 0, -1],
+        [0, 0, 0], [0, 1, 0], [1, 0, 0]
+    )
+
 if __name__ == '__main__':
-    test5()
+    test6()
