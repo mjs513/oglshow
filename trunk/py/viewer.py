@@ -144,7 +144,6 @@ class OglSdk:
                 self.octree = Octree(self.scene)
 
     def setup_vbo(self):
-        self.do_lighting = False
         glInitVertexBufferObjectARB()
         self.VBO_vertex = int(glGenBuffersARB(1))					# Get A Valid Name
         self.VBO_normal = int(glGenBuffersARB(1))					# Get A Valid Name
@@ -269,9 +268,7 @@ class OglSdk:
                 self.setup_vbo()
             self.vbo_init = True
 
-        # logger.info(' === render  === ')
-        set_trace()
-        print ' === render  === '
+        logger.info(' === render  === ')
 
         if not self.scene: 
             self.init_bg()
