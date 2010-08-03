@@ -101,4 +101,4 @@ def test7():
             print x1, y1, z1
 
 if __name__ == '__main__':
-    test7()
+    test5()
