@@ -35,11 +35,24 @@ try:
 except ImportError:
     _err_exit('ERROR: PyOpenGL not installed properly.')
 
+class Transparent(object):
+    def __init__(self): pass
+    def __enter__(self):
+        glEnable (GL_BLEND)
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    def __exit__(self, ty, val, tb):
+        glDisable(GL_BLEND)
+        return False
+
 class Wireframe(object):
-    def __init__(self, width = None):
+    def __init__(self, width = None, color = None):
         self.line_width = 3.0
         if width is not None:
             self.line_width = width
+
+        self.color = [1.0, 1.0, 1.0]
+        if color is not None:
+            self.color = color
 
     def __enter__(self):
         # color = [0.10, 0.10, 0.10]
@@ -59,7 +72,8 @@ class Wireframe(object):
         glLineWidth( self.line_width )
 
         # Set the colour to be white
-        glColor3f( 1.0, 1.0, 1.0 )
+        glColor3f( *self.color )
+
     def __exit__(self, ty, val, tb):
         # Pop the state changes off the attribute stack
         # to set things back how they were
@@ -87,7 +101,8 @@ class OglSdk:
         self.view = None
 
         self.show_wireframe = False
-        self.octree = True
+        self.octree = False
+        self.gpu_info = False
         self.normal_dl = None
         self.octree_dl = None
 
@@ -129,6 +144,7 @@ class OglSdk:
                 self.octree = Octree(self.scene)
 
     def setup_vbo(self):
+        self.do_lighting = False
         glInitVertexBufferObjectARB()
         self.VBO_vertex = int(glGenBuffersARB(1))					# Get A Valid Name
         self.VBO_normal = int(glGenBuffersARB(1))					# Get A Valid Name
@@ -190,10 +206,10 @@ class OglSdk:
             glBindBufferARB( GL_ARRAY_BUFFER_ARB, self.VBO_normal )
             glBufferDataARB( GL_ARRAY_BUFFER_ARB, normals, GL_STATIC_DRAW_ARB );
 
-        # print glGetString (GL_VENDOR)
-        print glGetString (GL_RENDERER)
-        print glGetString (GL_VERSION)
-        if False:
+        if self.gpu_info:
+            print glGetString (GL_VENDOR)
+            print glGetString (GL_RENDERER)
+            print glGetString (GL_VERSION)
             Extensions = glGetString (GL_EXTENSIONS)
             for ext in Extensions.split():
                 print ext
@@ -253,7 +269,9 @@ class OglSdk:
                 self.setup_vbo()
             self.vbo_init = True
 
-        logger.info(' === render  === ')
+        # logger.info(' === render  === ')
+        set_trace()
+        print ' === render  === '
 
         if not self.scene: 
             self.init_bg()
@@ -288,7 +306,14 @@ class OglSdk:
 
         # Render
         self.init_context()
-        self.render_obj()
+        with Transparent():
+            diffus = self.scene.diffus
+            # We store color in [0,255] interval
+            diffus = map(lambda x: x / 255.0, diffus)
+            color = diffus + [0.5]
+            glColor4f(*color)
+            self.render_obj()
+
         if self.show_wireframe:
             with Wireframe('white'):
                 self.render_obj()

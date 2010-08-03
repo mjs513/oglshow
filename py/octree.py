@@ -7,6 +7,11 @@ from scene import Scene, load, ArgsOptions
 from pdb import set_trace
 from utils import _err_exit
 
+from math_utils import rayIntersectsTriangle, vsub
+
+def print_tri(v1, v2, v3):
+    print v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]
+
 class Octree():
     def __init__(self, sc = None):
 
@@ -24,9 +29,32 @@ class Octree():
             max_depth = 50
             self.root = build(self, sc.bb, vertices, 0, max_depth)
 
+    def intersect(self, segment):
+        def ray_intersect_octree_rec(node, ray):
+            ret = False
+            if node.bb.intersect(ray):
+                if not node.childs:
+                    for i in xrange(len(node.vertices) / 3):
+                        v1 = node.vertices[3*i    ][0]
+                        v2 = node.vertices[3*i + 1][0]
+                        v3 = node.vertices[3*i + 2][0]
+                        intersection = rayIntersectsTriangle(ray[0], ray[1],
+                            v1, v2, v3)
+                        print_tri( v1, v2, v3 )
+                        ret += intersection
+
+                for child in node.childs:
+                    ret |= ray_intersect_octree_rec(child, ray)
+
+            return ret
+    
+        ray = 2*[0.0]
+        ray[0] = segment[0]
+        ray[1] = vsub(segment[1], segment[0])
+        return ray_intersect_octree_rec(self.root, ray)
+
 def build(octree, bb, vertices, depth, max_depth):
     octree.bb = bb
-    octree.vertices = vertices
     octree.childs = []
 
     vertices = [v for v in vertices if bb.is_inside(v[0])]
@@ -38,11 +66,17 @@ def build(octree, bb, vertices, depth, max_depth):
             childs.append( build(subtree, b, vertices, depth + 1, max_depth) )
         octree.childs = childs
 
+    else: # terminal node, attach verts
+        octree.vertices = vertices
+
     return octree
 
 def main():
     sc = load( join('test', 'data', 'gears.obj') )
-    g = Octree(sc)
+    octree = Octree(sc)
+
+    ray = (octree.bb.min(), octree.bb.max())
+    print octree.intersect(ray)
 
 if __name__ == '__main__':
     main()

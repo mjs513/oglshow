@@ -64,3 +64,22 @@ def draw_octree(octree):
         draw_octree_rec(octree.root)
         glEnd()
 
+    def draw_ray_octree_intersection_rec(node, ray):
+        if node.bb.intersect(ray) and not node.childs:
+            draw_bb(node.bb, False)
+        for child in node.childs:
+            draw_ray_octree_intersection_rec(child, ray)
+
+    ray = [ octree.root.bb.min(), octree.root.bb.max() ]
+    with viewer.Transparent():
+        glBegin(GL_QUADS)
+        draw_ray_octree_intersection_rec(octree.root, ray)
+        glEnd()
+
+    with viewer.Wireframe(5.0):
+        glBegin(GL_LINES)
+        glVertex3f( *octree.root.bb.min() )
+        glVertex3f( *octree.root.bb.max() )
+        glEnd()
+
+

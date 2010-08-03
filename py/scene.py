@@ -21,6 +21,7 @@ from math_utils import apply_matrix_on_point, common_quaternion_from_angles
 from math_utils import multiply_point_by_matrix as point_by_matrix
 from math_utils import quaternion_to_matrix
 from math_utils import distance, add
+from math_utils import rayIntersectsQuad
 
 class BoundingBox:
     def __init__(self, A=None, B=None):
@@ -115,6 +116,54 @@ class BoundingBox:
         yield BoundingBox( [xmin, ycen, zcen], [xcen, ymax, zmax] )
         yield BoundingBox( [xcen, ymin, zcen], [xmax, ycen, zmax] )
         yield BoundingBox( [xcen, ycen, zcen], [xmax, ymax, zmax] )
+
+    def intersect(self, ray):
+        xmin, ymin, zmin = [self.xmin, self.ymin, self.zmin]
+        xmax, ymax, zmax = [self.xmax, self.ymax, self.zmax]
+        front, back, top, bottom, right, left = [[] for i in range(6)]
+
+        # Front Face
+        front.append(( xmin,  ymin,  zmax))
+        front.append(( xmax,  ymin,  zmax))	
+        front.append(( xmax,  ymax,  zmax))
+        front.append(( xmin,  ymax,  zmax))
+
+        # Back Face
+        back.append(( xmin,  ymin,  zmin))
+        back.append(( xmin,  ymax,  zmin))
+        back.append(( xmax,  ymax,  zmin))
+        back.append(( xmax,  ymin,  zmin))
+
+        # Top Face
+        top.append(( xmin,  ymax,  zmin))
+        top.append(( xmin,  ymax,  zmax))
+        top.append(( xmax,  ymax,  zmax))
+        top.append(( xmax,  ymax,  zmin))
+
+        # Bottom Face       
+        bottom.append(( xmin,  ymin,  zmin))
+        bottom.append(( xmax,  ymin,  zmin))
+        bottom.append(( xmax,  ymin,  zmax))
+        bottom.append(( xmin,  ymin,  zmax))
+
+        # Right face
+        right.append(( xmax,  ymin,  zmin))
+        right.append(( xmax,  ymax,  zmin))
+        right.append(( xmax,  ymax,  zmax))
+        right.append(( xmax,  ymin,  zmax))
+
+        # Left Face
+        left.append(( xmin,  ymin,  zmin))
+        left.append(( xmin,  ymin,  zmax))
+        left.append(( xmin,  ymax,  zmax))
+        left.append(( xmin,  ymax,  zmin))
+
+        return rayIntersectsQuad(ray, front) or \
+               rayIntersectsQuad(ray, back)  or \
+               rayIntersectsQuad(ray, top)   or \
+               rayIntersectsQuad(ray, bottom) or \
+               rayIntersectsQuad(ray, right) or \
+               rayIntersectsQuad(ray, left) 
 
     def __str__(self):
         s = '\nxmin %f xmax %f\n' % (self.xmin, self.xmax)
@@ -215,9 +264,17 @@ class Scene:
                         if len(components) == 3:
                             normal_positions.append( int(components[2]) - 1 )
                             
-                    index.append(positions)
-                    if normal_positions:
-                        normals_index.append(normal_positions)
+                    # triangle ?
+                    if len(positions) == 3:
+                        index.append(positions)
+                        if normal_positions:
+                            normals_index.append(normal_positions)
+                    else: # let's say it's a quad
+                        index.append(positions[0:3])
+                        index.append(positions[2:] + [positions[0]])
+                        if normal_positions:
+                            normals_index.append(normal_positions[0:3])
+                            normals_index.append(normal_positions[2:] + [normal_positions[0]])
 
                 elif line.startswith('vn'):
                     flat_normals.append( map(float, tokens[1:]) )
