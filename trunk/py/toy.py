@@ -94,5 +94,11 @@ def test6():
         [0, 0, 0], [0, 1, 0], [1, 0, 0]
     )
 
+def test7():
+    with open(sys.argv[1]) as f:
+        for line in f:
+            x1, y1, z1, x2, y2, z2, x3, y3, z3 = map(float, line.split())
+            print x1, y1, z1
+
 if __name__ == '__main__':
-    test6()
+    test7()

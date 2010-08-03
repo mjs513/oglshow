@@ -264,14 +264,29 @@ def rayIntersectsTriangle(p, d, v0, v1, v2):
     else: # this means that there is a line intersection but not a ray intersection
         return False
 
+def rayIntersectsQuad(ray, face):
+    ''' FIXME '''
+    p, d, = ray
+    v0, v1, v2, v3 = face
+    return rayIntersectsTriangle(p, d, v0, v1, v2) or \
+           rayIntersectsTriangle(p, d, v2, v3, v0)
+
 if __name__ == '__main__':
     p1 = [1, 0, 0]
     p2 = [1, 1, 0]
     p3 = [0, 1, 0]
     k = vcross(sub(p2, p1), sub(p3, p1))
-    print k
+    assert k == [0, 0, 1]
 
     assert not rayIntersectsTriangle([.2, .2, 1], [10, 10, 10], 
         [0, 0, 0], [0, 1, 0], [1, 0, 0])
     assert rayIntersectsTriangle([.2, .2, 1], [0, 0, -1],
         [0, 0, 0], [0, 1, 0], [1, 0, 0])
+
+    from scene import BoundingBox
+    bb = BoundingBox([0, 0, 0], [1, 1, 1])
+
+    assert bb.intersect([ [0.5, 0.5, -0.5], [0.5, 0.5, 1] ])
+
+
+

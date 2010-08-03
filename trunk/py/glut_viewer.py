@@ -44,8 +44,6 @@ def ogl_reshape(w, h):
 def ogl_processNormalKeys(key, x, y):
     if ord(key) == 27:
         exit(0)
-    if key == 'a':
-        sdk.start_conference_as_slave()
 
 def glut_main(w, h):
     '''
