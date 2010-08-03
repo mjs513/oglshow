@@ -156,6 +156,7 @@ class OglSdk:
         if self.do_lighting:
             normals = Numeric.zeros ( (self.vbo_array_size, 3), 'f')
             if not sc.normals:
+                print 'CDCSCDSC'
                 from geom_ops import compute_normals
                 sc.normals = compute_normals(sc)
 
@@ -303,13 +304,14 @@ class OglSdk:
 
         # Render
         self.init_context()
-        with Transparent():
-            diffus = self.scene.diffus
-            # We store color in [0,255] interval
-            diffus = map(lambda x: x / 255.0, diffus)
-            color = diffus + [0.5]
-            glColor4f(*color)
-            self.render_obj()
+        # with Transparent():
+        #     diffus = self.scene.diffus
+        #     # We store color in [0,255] interval
+        #     diffus = map(lambda x: x / 255.0, diffus)
+        #     color = diffus + [0.5]
+        #     glColor4f(*color)
+        #     self.render_obj()
+        self.render_obj()
 
         if self.show_wireframe:
             with Wireframe('white'):
