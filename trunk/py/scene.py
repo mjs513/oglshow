@@ -224,6 +224,7 @@ class Scene:
         # geom
         self.points = []
         self.index = []
+        self.normals = []
 
         # material
         self.diffus = 3 * [0]
@@ -300,13 +301,17 @@ class Scene:
         for v in self.points:
             f.write('v %f %f %f\n' % (v[0], v[1], v[2]))
 
-        for n in self.normals:
-            f.write('vn %f %f %f\n' % (n[0][0], n[0][1], n[0][2]))
-            f.write('vn %f %f %f\n' % (n[1][0], n[1][1], n[1][2]))
-            f.write('vn %f %f %f\n' % (n[2][0], n[2][1], n[2][2]))
+        if not self.normals:
+            for t in self.index:
+                f.write('f %d %d %d\n' % (t[0]+1, t[1]+1, t[2]+1))
+        else:
+            for n in self.normals:
+                f.write('vn %f %f %f\n' % (n[0][0], n[0][1], n[0][2]))
+                f.write('vn %f %f %f\n' % (n[1][0], n[1][1], n[1][2]))
+                f.write('vn %f %f %f\n' % (n[2][0], n[2][1], n[2][2]))
 
-        for i, t in enumerate(self.index):
-            f.write('f %d//%d %d//%d %d//%d\n' % (t[0]+1, 3*i+1, t[1]+1, (3*i)+2, t[2]+1, (3*i)+3))
+            for i, t in enumerate(self.index):
+                f.write('f %d//%d %d//%d %d//%d\n' % (t[0]+1, 3*i+1, t[1]+1, (3*i)+2, t[2]+1, (3*i)+3))
 
         f.close()
 

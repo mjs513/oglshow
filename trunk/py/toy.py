@@ -96,9 +96,20 @@ def test6():
 
 def test7():
     with open(sys.argv[1]) as f:
-        for line in f:
+        points = []
+        index = []
+        for i, line in enumerate(f):
             x1, y1, z1, x2, y2, z2, x3, y3, z3 = map(float, line.split())
-            print x1, y1, z1
+            points.append( (x1, y1, z1) )
+            points.append( (x2, y2, z2) )
+            points.append( (x3, y3, z3) )
+            index.append( (3*i, 3*i + 1, 3*i +2) )
+
+        from scene import Scene
+        sc = Scene()
+        sc.points = points
+        sc.index = index
+        sc.write('/tmp/out.obj')
 
 if __name__ == '__main__':
-    test5()
+    test7()

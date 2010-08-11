@@ -135,7 +135,7 @@ class OglSdk:
         # Init quat
         self.trackball = Trackball()
 
-        # highlight
+        # highlight setup, for CPython only
         # setup(self.scene.points, self.scene.index)
 
         # Grid setup
