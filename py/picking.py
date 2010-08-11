@@ -36,7 +36,7 @@ def display_hits(hits, points):
         p2 = points[t[1]]
         p3 = points[t[2]]
 
-        with viewer.wireframe('white'):
+        with viewer.Wireframe(2.0): # FIXME: 'white'):
             glBegin(GL_TRIANGLES)
             glVertex3f(*p1)
             glVertex3f(*p2)
