@@ -16,7 +16,7 @@ try:
     from cobj import setup, projall, gethits
 except ImportError:
     pass
-from picking import do_highlight, do_highlight_C
+from picking import do_highlight, do_highlight_C, do_highlight_octree
 from grid import Grid
 from octree import Octree
 from view_utils import draw_bb, draw_octree
@@ -102,6 +102,7 @@ class OglSdk:
 
         self.show_wireframe = False
         self.octree = False
+        self.draw_octree = False
         self.gpu_info = False
         self.normal_dl = None
         self.octree_dl = None
@@ -156,7 +157,7 @@ class OglSdk:
         if self.do_lighting:
             normals = Numeric.zeros ( (self.vbo_array_size, 3), 'f')
             if not sc.normals:
-                print 'CDCSCDSC'
+                print 'compute normals'
                 from geom_ops import compute_normals
                 sc.normals = compute_normals(sc)
 
@@ -322,8 +323,10 @@ class OglSdk:
                 do_highlight(self.highlight_cursor, self.scene.index, self.scene.points)
             elif self.highlight_implementation == "CPython":
                 do_highlight_C(self.highlight_cursor, self.scene.index, self.scene.points)
+            elif self.highlight_implementation == "octree":
+                do_highlight_octree(self.octree, self.highlight_cursor, self.scene.index, self.scene.points)
 
-        if self.octree:
+        if self.draw_octree:
             if self.octree_dl is not None:
                 glCallList(self.octree_dl)
             else:

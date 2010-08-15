@@ -220,3 +220,7 @@ def do_highlight_C(highlight_cursor, index, points):
         hits = gethits(cursor.x, cursor.y)
 
         display_hits(hits, points)
+        return True
+
+def do_highlight_octree(octree, highlight_cursor):
+    pass

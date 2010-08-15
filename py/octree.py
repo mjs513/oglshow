@@ -5,7 +5,7 @@ import sys
 from os.path import join
 from scene import Scene, load, ArgsOptions
 from pdb import set_trace
-from utils import _err_exit
+from utils import _err_exit, benchmark
 
 from math_utils import rayIntersectsTriangle, vsub
 
@@ -32,7 +32,7 @@ class Octree():
 
     def intersect(self, segment):
         def ray_intersect_octree_rec(node, ray, sc):
-            ret = False
+            ret = []
             if node.bb.intersect(ray):
                 if not node.childs:
                     for _, t in node.vertices:
@@ -41,12 +41,13 @@ class Octree():
                         v3 = sc.points[t[2]]
                         intersection = rayIntersectsTriangle(ray[0], ray[1],
                             v1, v2, v3)
-                        print_tri( v1, v2, v3 )
+                        # print_tri( v1, v2, v3 )
                         # print 'hit ?', intersection
-                        ret += intersection
+                        if intersection:
+                            ret.append(t)
 
                 for child in node.childs:
-                    ret |= ray_intersect_octree_rec(child, ray, sc)
+                    ret.extend( ray_intersect_octree_rec(child, ray, sc) )
 
             return ret
     
@@ -54,6 +55,17 @@ class Octree():
         ray[0] = segment[0]
         ray[1] = vsub(segment[1], segment[0])
         return ray_intersect_octree_rec(self.root, ray, self.root.sc)
+
+    def write(self):
+        from cPickle import dumps, loads
+        import zlib
+        
+        with benchmark('serialize octree'):
+            bytes = zlib.compress(dumps(self))
+            print len(bytes)
+
+        with benchmark('deserialize octree'):
+            octree = loads(zlib.decompress(bytes))
 
 def build(octree, bb, vertices, depth, max_depth):
     octree.bb = bb
@@ -78,10 +90,15 @@ def main():
         sc = load( sys.argv[1] )
     else:
         sc = load( join('test', 'data', 'gears.obj') )
-    octree = Octree(sc)
+
+    with benchmark('build octree'):
+        octree = Octree(sc)
 
     ray = (octree.bb.min(), octree.bb.max())
-    print octree.intersect(ray)
+    with benchmark('ray octree'):
+        print octree.intersect(ray)
+
+    octree.write()
 
 if __name__ == '__main__':
     main()

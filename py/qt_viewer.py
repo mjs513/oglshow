@@ -69,8 +69,11 @@ class Window(QtGui.QMainWindow):
             self.glWidget.updateGL()
         if event.key() == QtCore.Qt.Key_H: # highlight triangle under cursor
             sdk.highlight = not sdk.highlight
+            # print dir(QtCore.Qt)
             if event.modifiers() == QtCore.Qt.ShiftModifier:
                 sdk.highlight_implementation = "Python"
+            elif event.modifiers() == QtCore.Qt.AltModifier:
+                sdk.highlight_implementation = "octree"
             else:
                 sdk.highlight_implementation = "CPython"
 
