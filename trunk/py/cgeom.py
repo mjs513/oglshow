@@ -16,7 +16,7 @@ sc = scene2c()
 print sc
 
 setup([p.pos for p in sc.objets[0].g.points], 
-      sc.objets[0].g.index)
+      sc.objets[0].g.faces)
 
 model = [-0.62869209,  0.77656037 , -0.04123428  , 0. ,
   0.22454762,  0.13051406 , -0.9656834   , 0. ,      

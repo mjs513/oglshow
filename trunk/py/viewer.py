@@ -137,7 +137,7 @@ class OglSdk:
         self.trackball = Trackball()
 
         # highlight setup, for CPython only
-        # setup(self.scene.points, self.scene.index)
+        # setup(self.scene.points, self.scene.faces)
 
         # Grid setup
         if self.octree:
@@ -151,7 +151,7 @@ class OglSdk:
 
         # Load The Data
         sc = self.scene
-        self.vbo_array_size = len(sc.index) * 3
+        self.vbo_array_size = len(sc.faces) * 3
         vertices = Numeric.zeros ( (self.vbo_array_size, 3), 'f')
 
         if self.do_lighting:
@@ -159,10 +159,11 @@ class OglSdk:
             if not sc.normals:
                 print 'compute normals'
                 from geom_ops import compute_normals
-                sc.normals = compute_normals(sc)
+                sc.normals, sc.faces_normals = compute_normals(sc)
 
         i = 0
-        for j, t in enumerate(sc.index):
+        for j in xrange(len(sc.faces)):
+            t = sc.faces[j]
             p1 = sc.points[t[0]]
             p2 = sc.points[t[1]]
             p3 = sc.points[t[2]]
@@ -182,9 +183,10 @@ class OglSdk:
             # print p1, p2, p3
 
             if self.do_lighting:
-                n1 = sc.normals[j][0]
-                n2 = sc.normals[j][1]
-                n3 = sc.normals[j][2]
+                n = sc.faces_normals[j]
+                n1 = sc.normals[n[0]]
+                n2 = sc.normals[n[1]]
+                n3 = sc.normals[n[2]]
 
                 normals [i, 0] = n1[0]
                 normals [i, 1] = n1[1]
@@ -315,16 +317,16 @@ class OglSdk:
         self.render_obj()
 
         if self.show_wireframe:
-            with Wireframe('white'):
+            with Wireframe(3.0):
                 self.render_obj()
 
         if self.highlight:
             if self.highlight_implementation == "Python":
-                do_highlight(self.highlight_cursor, self.scene.index, self.scene.points)
+                do_highlight(self.highlight_cursor, self.scene.faces, self.scene.points)
             elif self.highlight_implementation == "CPython":
-                do_highlight_C(self.highlight_cursor, self.scene.index, self.scene.points)
+                do_highlight_C(self.highlight_cursor, self.scene.faces, self.scene.points)
             elif self.highlight_implementation == "octree":
-                do_highlight_octree(self.octree, self.highlight_cursor, self.scene.index, self.scene.points)
+                do_highlight_octree(self.octree, self.highlight_cursor, self.scene.faces, self.scene.points)
 
         if self.draw_octree:
             if self.octree_dl is not None:
@@ -428,7 +430,7 @@ class OglSdk:
                     glNormal3f(*p.normal)
                 glVertex3f(*p)
 
-            for t in sc.index:
+            for t in sc.faces:
                 p1 = sc.points[t[0]]
                 p2 = sc.points[t[1]]
                 p3 = sc.points[t[2]]
@@ -455,7 +457,7 @@ class OglSdk:
                     N = map(lambda x, y: x + y, p, n)
                     glVertex3fv(N)
 
-                for j, t in enumerate(sc.index):
+                for j, t in enumerate(sc.faces):
                     p1 = sc.points[t[0]]
                     p2 = sc.points[t[1]]
                     p3 = sc.points[t[2]]

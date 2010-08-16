@@ -21,9 +21,10 @@ obj_read(PyObject *self, PyObject *args)
 	f = PyFile_FromString((char*) pstr, "r");
 	int bufsize = -1;
 
-	PyObject* triangles = PyList_New(0);
+	PyObject* faces = PyList_New(0);
 	PyObject* points = PyList_New(0);
 	PyObject* normals = PyList_New(0);
+	PyObject* faces_normals = PyList_New(0);
 
 	if (f != NULL) {
 		PyFile_SetBufSize(f, bufsize);
@@ -53,15 +54,68 @@ obj_read(PyObject *self, PyObject *args)
 			 */
 			char* cline = PyString_AsString(line);
 			if (cline[0] == 'f') {
-				int a, b, c;
-				PyObject* triangle = PyList_New(3);
-				sscanf(cline+2, "%d %d %d", &a, &b, &c);
+                char p1[255];
+                int has_normals = 0;
+                int f1, f2, f3, f4;
+                int n1, n2, n3, n4;
+                int tmp;
+                int cnt = sscanf(cline+2, "%s %s %s %s", p1, p1, p1, p1);
+                // printf("%d\n", cnt);
 
-				PyList_SetItem(triangle, 0, PyInt_FromLong(a-1));
-				PyList_SetItem(triangle, 1, PyInt_FromLong(b-1));
-				PyList_SetItem(triangle, 2, PyInt_FromLong(c-1));
+                if (strchr(p1, '/') == NULL) {
+                    if (cnt == 3)
+                        sscanf(cline+2, "%d %d %d", &f1, &f2, &f3); 
+                    else
+                        sscanf(cline+2, "%d %d %d", &f1, &f2, &f3); 
+                } else {
+                    has_normals = 1;
+                    if (strstr(p1, "//")) {
+                        if (cnt == 3) 
+                            sscanf(cline+2, "%d//%d %d//%d %d//%d", 
+                                &f1, &n1, &f2, &n2, &f3, &n3);
+                        else
+                            sscanf(cline+2, "%d//%d %d//%d %d//%d %d//%d", 
+                                &f1, &n1, &f2, &n2, &f3, &n3, &f4, &n4);
+                    } else {
+                        if (cnt == 3) 
+                            sscanf(cline+2, "%d/%d/%d %d/%d/%d %d/%d/%d", 
+                                &f1, &tmp, &n1, &f2, &tmp, &n2, &f3, &tmp, &n3);
+                        else {
+                            sscanf(cline+2, "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d", 
+                                &f1, &tmp, &n1, &f2, &tmp, &n2, &f3, &tmp, &n3, &f4, &tmp, &n4);
+                        }
+                    }
+                }
 
-				PyList_Append(triangles, triangle);
+				PyObject* face = PyList_New(3);
+				PyList_SetItem(face, 0, PyInt_FromLong(f1-1));
+				PyList_SetItem(face, 1, PyInt_FromLong(f2-1));
+				PyList_SetItem(face, 2, PyInt_FromLong(f3-1));
+				PyList_Append(faces, face);
+
+                if (cnt == 4) {
+                    PyObject* face2 = PyList_New(3);
+                    PyList_SetItem(face2, 0, PyInt_FromLong(f3-1));
+                    PyList_SetItem(face2, 1, PyInt_FromLong(f4-1));
+                    PyList_SetItem(face2, 2, PyInt_FromLong(f1-1));
+                    PyList_Append(faces, face2);
+                }
+
+                if (has_normals) {
+                    PyObject* n = PyList_New(3);
+                    PyList_SetItem(n, 0, PyInt_FromLong(n1-1));
+                    PyList_SetItem(n, 1, PyInt_FromLong(n2-1));
+                    PyList_SetItem(n, 2, PyInt_FromLong(n3-1));
+                    PyList_Append(faces_normals, n);
+
+                    if (cnt == 4) {
+                        PyObject* p = PyList_New(3);
+                        PyList_SetItem(p, 0, PyInt_FromLong(n3-1));
+                        PyList_SetItem(p, 1, PyInt_FromLong(n4-1));
+                        PyList_SetItem(p, 2, PyInt_FromLong(n1-1));
+                        PyList_Append(faces_normals, p);
+                    }
+                }
 			}
 			else if (cline[0] == 'v' && cline[1] == ' ') {
 				double a, b, c;
@@ -93,10 +147,11 @@ obj_read(PyObject *self, PyObject *args)
 	}
 	fclose(PyFile_AsFile(f));
 
-	PyObject* tuple = PyList_New(3);
+	PyObject* tuple = PyList_New(4);
 	PyList_SetItem(tuple, 0, points);
-	PyList_SetItem(tuple, 1, triangles);
+	PyList_SetItem(tuple, 1, faces);
 	PyList_SetItem(tuple, 2, normals);
+	PyList_SetItem(tuple, 3, faces_normals);
 
 	return tuple;
 }

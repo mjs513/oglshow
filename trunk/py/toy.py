@@ -27,7 +27,7 @@ def test2():
 def test3():
     def compute_normals(sc):
         out = len(sc.points) * [ [.0, .0, .0] ]
-        triangle_normals = len(sc.index) * [ [.0, .0, .0] ]
+        triangle_normals = len(sc.faces) * [ [.0, .0, .0] ]
 
         def hash(p):
             return .11234 * p[0] + .35678 * p[1] + .67257 * p[2]
@@ -35,7 +35,7 @@ def test3():
         from collections import defaultdict
         pt_table = defaultdict(list)
 
-        for i, t in enumerate(sc.index):
+        for i, t in enumerate(sc.faces):
             p1 = sc.points[t[0]]
             p2 = sc.points[t[1]]
             p3 = sc.points[t[2]]
@@ -85,7 +85,7 @@ def test5():
     scene = load(sys.argv[1])
     from geom_ops import compute_normals
     with benchmark('compute normals'):
-        scene.normals = compute_normals(scene)
+        scene.normals, scene.faces_normals = compute_normals(scene)
     scene.write(sys.argv[2])
 
 def test6():
@@ -97,19 +97,19 @@ def test6():
 def test7():
     with open(sys.argv[1]) as f:
         points = []
-        index = []
+        faces = []
         for i, line in enumerate(f):
             x1, y1, z1, x2, y2, z2, x3, y3, z3 = map(float, line.split())
             points.append( (x1, y1, z1) )
             points.append( (x2, y2, z2) )
             points.append( (x3, y3, z3) )
-            index.append( (3*i, 3*i + 1, 3*i +2) )
+            faces.append( (3*i, 3*i + 1, 3*i +2) )
 
         from scene import Scene
         sc = Scene()
         sc.points = points
-        sc.index = index
+        sc.faces = faces
         sc.write('/tmp/out.obj')
 
 if __name__ == '__main__':
-    test7()
+    test5()

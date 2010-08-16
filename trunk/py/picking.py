@@ -74,7 +74,7 @@ class in_red(object):
         glPopAttrib()
         return False
 
-def do_highlight(highlight_cursor, index, points):
+def do_highlight(highlight_cursor, faces, points):
     global self_model, self_proj, self_view, image_points
 
     # the gluProject helper retrieve those for us 
@@ -143,7 +143,7 @@ def do_highlight(highlight_cursor, index, points):
                 # print view, x, y, z
 
     with benchmark('python'):
-        for t in index:
+        for t in faces:
             x1, y1, z1 = image_points[t[0]]
             x2, y2, z2 = image_points[t[1]]
             x3, y3, z3 = image_points[t[2]]
@@ -169,7 +169,7 @@ def do_highlight(highlight_cursor, index, points):
 
     display_hits(hits, points)
         
-def do_highlight_C(highlight_cursor, index, points):
+def do_highlight_C(highlight_cursor, faces, points):
     global self_model, self_proj, self_view
 
     # the gluProject helper retrieve those for us 
