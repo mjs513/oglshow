@@ -22,7 +22,7 @@ class Octree():
         if sc is not None:
             self.sc = sc
             vertices = []
-            for t in sc.index:
+            for t in sc.faces:
                 vertices.append( (sc.points[t[0]], t) )
                 vertices.append( (sc.points[t[1]], t) )
                 vertices.append( (sc.points[t[2]], t) )

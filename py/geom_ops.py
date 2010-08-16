@@ -8,7 +8,7 @@ from utils import _err_exit, notYetImplemented, benchmark
 
 def compute_normals(sc):
     out = []
-    triangle_normals = len(sc.index) * [ [.0, .0, .0] ]
+    triangle_normals = len(sc.faces) * [ [.0, .0, .0] ]
 
     def hash(p):
         return .11234 * p[0] + .35678 * p[1] + .67257 * p[2]
@@ -16,7 +16,7 @@ def compute_normals(sc):
     from collections import defaultdict
     pt_table = defaultdict(list)
 
-    for i, t in enumerate(sc.index):
+    for i, t in enumerate(sc.faces):
         p1 = sc.points[t[0]]
         p2 = sc.points[t[1]]
         p3 = sc.points[t[2]]
@@ -30,7 +30,10 @@ def compute_normals(sc):
 
         triangle_normals[i] = normal
 
-    for t in sc.index:
+    i = 0
+    normals = []
+    faces_normals = []
+    for t in sc.faces:
         p1 = sc.points[t[0]]
         p2 = sc.points[t[1]]
         p3 = sc.points[t[2]]
@@ -44,24 +47,25 @@ def compute_normals(sc):
 
             # compute the normal of each triangles around 
             # TODO should be done just once for each triangle in pre-process
-            normals = []
+            neighbors_normals = []
 
             for t_index, p, _ in value:
                 assert p == first_point
-                normals.append(triangle_normals[t_index])
+                neighbors_normals.append(triangle_normals[t_index])
             
             N = (
-                sum(n[0] for n in normals) / len(normals),
-                sum(n[1] for n in normals) / len(normals),
-                sum(n[2] for n in normals) / len(normals)
+                sum(n[0] for n in neighbors_normals) / len(neighbors_normals),
+                sum(n[1] for n in neighbors_normals) / len(neighbors_normals),
+                sum(n[2] for n in neighbors_normals) / len(neighbors_normals)
             )
 
             # normalize normal
             N = vnorm(N)
 
             # print N
-            face_normals.append(N)
+            normals.append(N)
 
-        out.append(face_normals)
+        faces_normals.append( (3*i, 3*i+1, 3*i+2) )
+        i += 1
 
-    return out
+    return normals, faces_normals

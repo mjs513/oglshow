@@ -41,7 +41,7 @@ class Grid():
         self.Y = Y
         self.Z = Z
 
-        for t in sc.index:
+        for t in sc.faces:
             p1 = sc.points[t[0]]
             p2 = sc.points[t[1]]
             p3 = sc.points[t[2]]

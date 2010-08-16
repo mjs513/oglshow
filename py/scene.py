@@ -223,8 +223,9 @@ class Scene:
 
         # geom
         self.points = []
-        self.index = []
+        self.faces = []
         self.normals = []
+        self.faces_normals = []
 
         # material
         self.diffus = 3 * [0]
@@ -245,9 +246,9 @@ class Scene:
 
         def read_geom(input):
             points = []
-            index = []
-            flat_normals = []
-            normals_index = []
+            faces = []
+            normals = []
+            faces_normals = []
 
             for line in open(input):
                 line = line.strip()
@@ -255,7 +256,7 @@ class Scene:
 
                 tokens = line.split()
                 if line.startswith('v '):
-                    points.append( map(float, tokens[1:]) )
+                    points.append( map(float, tokens[1:]) ) 
                 elif line.startswith('f'):
                     positions = []
                     normal_positions = []
@@ -267,34 +268,31 @@ class Scene:
                             
                     # triangle ?
                     if len(positions) == 3:
-                        index.append(positions)
+                        faces.append(positions)
                         if normal_positions:
-                            normals_index.append(normal_positions)
+                            faces_normals.append(normal_positions)
                     else: # let's say it's a quad
-                        index.append(positions[0:3])
-                        index.append(positions[2:] + [positions[0]])
+                        faces.append(positions[0:3])
+                        faces.append(positions[2:] + [positions[0]])
                         if normal_positions:
-                            normals_index.append(normal_positions[0:3])
-                            normals_index.append(normal_positions[2:] + [normal_positions[0]])
+                            faces_normals.append(normal_positions[0:3])
+                            faces_normals.append(normal_positions[2:] + [normal_positions[0]])
 
                 elif line.startswith('vn'):
-                    flat_normals.append( map(float, tokens[1:]) )
+                    normals.append( map(float, tokens[1:]) )
 
-            normals = [ [flat_normals[n[0]], 
-                         flat_normals[n[1]], 
-                         flat_normals[n[2]]] for n in normals_index ]
-            
-            return points, index, normals
+            return points, faces, normals, faces_normals
 
         def read_geom_C(input):
             import cobj
             return cobj.read(input)
 
         try:
-            import caca
-            self.points, self.index, self.normals = read_geom_C(fn)
+            self.points, self.faces, self.normals, self.faces_normals = \
+                read_geom_C(fn)
         except ImportError:
-            self.points, self.index, self.normals = read_geom(fn)
+            self.points, self.faces, self.normals, self.faces_normals = \
+                read_geom(fn)
 
     def write(self, fn, comp_type = None):
         f = open(fn, 'w')
@@ -302,16 +300,17 @@ class Scene:
             f.write('v %f %f %f\n' % (v[0], v[1], v[2]))
 
         if not self.normals:
-            for t in self.index:
+            for t in self.faces:
                 f.write('f %d %d %d\n' % (t[0]+1, t[1]+1, t[2]+1))
         else:
             for n in self.normals:
-                f.write('vn %f %f %f\n' % (n[0][0], n[0][1], n[0][2]))
-                f.write('vn %f %f %f\n' % (n[1][0], n[1][1], n[1][2]))
-                f.write('vn %f %f %f\n' % (n[2][0], n[2][1], n[2][2]))
+                f.write('vn %f %f %f\n' % (n[0]+1, n[1]+1, n[2]+1))
 
-            for i, t in enumerate(self.index):
-                f.write('f %d//%d %d//%d %d//%d\n' % (t[0]+1, 3*i+1, t[1]+1, (3*i)+2, t[2]+1, (3*i)+3))
+            for i in xrange(len(self.faces)):
+                t = self.faces[i]
+                n = self.faces_normals[i]
+                f.write('f %d//%d %d//%d %d//%d\n' % \
+                    (t[0]+1, n[0]+1, t[1]+1, n[1]+1, t[2]+1, n[2]+1))
 
         f.close()
 
@@ -322,15 +321,17 @@ class Scene:
 
     def get_infos(self):
         nb_pts = len(self.points)
-        nb_triangles = len(self.index)
+        nb_triangles = len(self.faces)
         return nb_pts, nb_triangles
 
     def __str__(self):
         s =  'File name %s\n' % self.fn
         s += 'File size %d\n' % self.filesize
         s += '\n'
-        s += 'nb_points %d\n' % len(self.points)
-        s += 'nb_index %d\n' % len(self.index)
+        s += 'nb points %d\n' % len(self.points)
+        s += 'nb faces %d\n' % len(self.faces)
+        s += 'nb normals %d\n' % len(self.normals)
+        s += 'nb faces_normals %d\n' % len(self.faces_normals)
 
         return s
 
