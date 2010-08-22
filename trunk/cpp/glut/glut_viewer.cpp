@@ -1,0 +1,78 @@
+
+/* Basic .obj OpenGL Viewer, by Benjamin Sergeant */
+/* g++ -framework GLUT -framework OpenGL -framework Cocoa glut_viewer.cpp -o robot */
+
+#include "view.h"
+
+static OglSdk sdk;
+
+void ogl_motion(int x, int y) {
+    string manip_mode("rotate");
+    switch(sdk.button) {
+        case GLUT_LEFT_BUTTON:   manip_mode = "rotate"; break;
+        case GLUT_MIDDLE_BUTTON: manip_mode = "pan";    break;
+        case GLUT_RIGHT_BUTTON:  manip_mode = "zoom";   break;
+    }
+
+    sdk.pointer_move(manip_mode, sdk.mouse_start.x, sdk.mouse_start.y, x, y);
+    OglSdk::mouse m = { x, y };
+    sdk.mouse_start = m;
+
+    glutPostRedisplay(); // # ask for a refresh
+}
+
+void ogl_mouse(int button, int button_state, int x, int y) {
+    sdk.button = button;
+    sdk.motion = button_state;
+    OglSdk::mouse m = { x, y };
+    sdk.mouse_start = m;
+
+    glutPostRedisplay(); // ask for a refresh
+}
+
+void ogl_display(void) {
+    sdk.render();
+    // FIXME glutSetWindowTitle('FPS: ' + sdk.fps)'
+    glutSwapBuffers(); 
+}
+
+void ogl_reshape(int w, int h) {
+    sdk.reshape(w, h);
+    glutSwapBuffers();
+}
+
+void ogl_processNormalKeys(unsigned char key, int x, int y) {
+    if (key == 27)
+        exit(0);
+}
+
+int main(int argc, char** argv) {
+    sdk.w = 600;
+    sdk.h = 480;
+
+    if (argc == 2) {
+        sdk.load_file(argv[1]);
+    } else {
+        sdk.load_file("../../py/test/data/gears.obj");
+        // sdk.load_file("../../py/test/data/triangle.obj");
+    }
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+
+    // glutInitWindowPosition(100, 100):
+    glutInitWindowSize(sdk.w, sdk.h);
+    (void)glutCreateWindow("oglshow");
+
+    glutKeyboardFunc(ogl_processNormalKeys);
+
+    // Mouse
+    glutMouseFunc(ogl_mouse);
+    glutMotionFunc(ogl_motion);
+
+    glutDisplayFunc(ogl_display);
+    glutReshapeFunc(ogl_reshape);
+
+    glutMainLoop();
+}
+

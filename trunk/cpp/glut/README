@@ -1,0 +1,8 @@
+Why is it black (or white)
+
+Matrix:
+Bad matrix mode, forget to call 
+
+Color:
+Bad clearcolor
+Bad format (hexa colors 0, 255, 255 while using glColorf)
