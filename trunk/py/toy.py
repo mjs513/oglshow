@@ -111,5 +111,59 @@ def test7():
         sc.faces = faces
         sc.write('/tmp/out.obj')
 
+def read_geom(input):
+    cmd = "awk 'BEGIN { quad = 0; vn = 0 } /^v / { v++ } /^vn / { vn++ } /^f / { f++; } /^f / && NF == 5 { quad++ } END { print v,vn,f,quad }' "
+    cmd += fn
+    out = popen(cmd).read()
+    nb_points, nb_normals, nb_faces, quad = map(int, out.split())
+    print nb_points, nb_faces, nb_normals, quad
+
+    points = range(nb_points)
+    normals = range(nb_normals)
+    size = nb_faces * 2 if quad else nb_faces
+    faces = range(size)
+    faces_normals = range(size)
+
+    vn, v, f = 0, 0, 0
+
+    for line in open(input):
+        line = line.strip()
+        if line.startswith('#'): continue
+
+        tokens = line.split()
+        if line.startswith('v '):
+            points[v] = map(float, tokens[1:])
+            v += 1
+
+        elif line.startswith('f'):
+            positions = []
+            normal_positions = []
+            for vert in tokens[1:]:
+                components = vert.split('/')
+                positions.append( int(components[0]) - 1 )
+                if len(components) == 3:
+                    normal_positions.append( int(components[2]) - 1 )
+                    
+            # triangle ?
+            if len(positions) == 3:
+                faces[f] = positions
+                if normal_positions:
+                    faces_normals[f] = normal_positions
+                f += 1
+
+            else: # let's say it's a quad
+                faces.append(positions[0:3])
+                faces.append(positions[2:] + [positions[0]])
+                if normal_positions:
+                    faces_normals.append(normal_positions[0:3])
+                    faces_normals.append(normal_positions[2:] + [normal_positions[0]])
+
+        elif line.startswith('vn'):
+            normals[vn] = map(float, tokens[1:])
+            vn += 1
+
+    return points, faces, normals, faces_normals
+
+
 if __name__ == '__main__':
-    test5()
+    test2()
