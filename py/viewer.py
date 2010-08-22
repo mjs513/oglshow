@@ -513,16 +513,17 @@ class OglSdk:
         glLightfv(GL_LIGHT0, GL_AMBIENT, LightAmbiant)
         glEnable(GL_LIGHT0)
 
-        # Opposite light - LIGHT 2
-        matShine = 60.00
-        light1Pos = [ -0.7, -0.7, -0.7, 0.00 ]
-        LightDiffuse = [1.0, 1.0, 1.0, 1.0]
+        if False:
+            # Opposite light - LIGHT 2
+            matShine = 60.00
+            light1Pos = [ -0.7, -0.7, -0.7, 0.00 ]
+            LightDiffuse = [1.0, 1.0, 1.0, 1.0]
 
-        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, matShine)
-        glLightfv(GL_LIGHT1, GL_POSITION, light1Pos)
-        glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse)
-        glLightfv(GL_LIGHT1, GL_SPECULAR, LightDiffuse)
-        glEnable(GL_LIGHT1)
+            glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, matShine)
+            glLightfv(GL_LIGHT1, GL_POSITION, light1Pos)
+            glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse)
+            glLightfv(GL_LIGHT1, GL_SPECULAR, LightDiffuse)
+            glEnable(GL_LIGHT1)
 
         glEnable(GL_COLOR_MATERIAL)
         glEnable(GL_LIGHTING)

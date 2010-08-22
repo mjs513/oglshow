@@ -288,6 +288,7 @@ class Scene:
             return cobj.read(input)
 
         try:
+            import caca
             self.points, self.faces, self.normals, self.faces_normals = \
                 read_geom_C(fn)
         except ImportError:
