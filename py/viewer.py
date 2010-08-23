@@ -258,6 +258,33 @@ class OglSdk:
             view.quat = add_quat(spin_quat, view.quat)
             logger.info('quat from trackball %s' % str(view.quat))
 
+    def draw_bg(self):
+        glDisable(GL_DEPTH_TEST)
+    
+        glMatrixMode(GL_PROJECTION)
+        glPushMatrix()
+        glLoadIdentity()
+
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        glDisable(GL_LIGHTING)
+
+        glBegin(GL_QUADS)
+        glColor3ub(24, 26, 28) # Bottom / Blue
+        glVertex2f(-1.0,-1.0)
+        glVertex2f(1.0,-1.0)
+        
+        glColor3ub(126, 145, 165) # Top / Red
+        glVertex2f(1.0, 1.0)
+        glVertex2f(-1.0, 1.0)
+        glEnd()
+
+        glMatrixMode(GL_PROJECTION)
+        glPopMatrix()
+        glMatrixMode(GL_MODELVIEW)
+
+        glEnable(GL_DEPTH_TEST)
+
     def reshape(self, w, h):
         glViewport(0, 0, w, h)
         self.w = w
@@ -275,14 +302,10 @@ class OglSdk:
         logger.info(' === render  === ')
 
         if not self.scene: 
-            self.init_bg()
             #glutSwapBuffers() GLUT
             if self.SwapBuffer_cb:
                 self.SwapBuffer_cb()
             return
-
-        self.set_lights()
-        self.set_matrix(self.scene.views[0])
 
         # Some OpenGL init
         glEnable(GL_MULTISAMPLE_ARB)
@@ -294,6 +317,10 @@ class OglSdk:
         bg_color += [1.0]
         glClearColor(*bg_color)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        self.draw_bg()
+        self.set_lights()
+        self.set_matrix(self.scene.views[0])
 
         # wireframe only is good for debugging, especially
         # when your triangle are just one line: copy/paste error
@@ -499,12 +526,12 @@ class OglSdk:
         glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0)
 
         # Facial light - LIGHT 1
-        matShine = 60.00
         look = [0.,0.,-1.]
         quat = common_quaternion_from_angles(30.,30.,0.)
         v = multiply_point_by_matrix(quaternion_to_matrix(quat), look)
         light0Pos = map(lambda x: x * -1., v) # * -1
 
+        matShine = 60.00
         glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, matShine)
         glLightfv(GL_LIGHT0, GL_POSITION, light0Pos)
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, LightAmbiantScene)
@@ -513,7 +540,7 @@ class OglSdk:
         glLightfv(GL_LIGHT0, GL_AMBIENT, LightAmbiant)
         glEnable(GL_LIGHT0)
 
-        if False:
+        if True:
             # Opposite light - LIGHT 2
             matShine = 60.00
             light1Pos = [ -0.7, -0.7, -0.7, 0.00 ]

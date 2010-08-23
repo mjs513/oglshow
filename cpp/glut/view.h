@@ -89,26 +89,88 @@ public:
         glEnd();							// Finished Drawing The Triangle
     }
 #endif
+    void draw_bg() {
+        glDisable(GL_DEPTH_TEST);
+    
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
 
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glDisable(GL_LIGHTING);
 
-void init_gl_red_book(void) 
-{
-   GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-   GLfloat mat_shininess[] = { 50.0 };
-   GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
-   glClearColor (0.0, 0.0, 0.0, 0.0);
-   glShadeModel (GL_SMOOTH);
+        glBegin(GL_QUADS);
+        glColor3ub(24, 26, 28); // Bottom / Blue
+        glVertex2f(-1.0,-1.0);
+        glVertex2f(1.0,-1.0);
+        
+        glColor3ub(126, 145, 165); // Top / Red
+        glVertex2f(1.0, 1.0);
+        glVertex2f(-1.0, 1.0);
+        glEnd();
 
-   glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-   glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-   glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
 
-   glEnable(GL_LIGHTING);
-   glEnable(GL_LIGHT0);
-   glEnable(GL_DEPTH_TEST);
-}
+        glEnable(GL_DEPTH_TEST);
+    }
+
+    void set_default_light(int kind = 2) {
+       if (kind == 1) {
+           GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+           GLfloat mat_shininess[] = { 50.0 };
+           GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
+           glClearColor (0.0, 0.0, 0.0, 0.0);
+           glShadeModel (GL_SMOOTH);
+
+           glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+           glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+           glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+           glEnable(GL_LIGHTING);
+           glEnable(GL_LIGHT0);
+           glEnable(GL_DEPTH_TEST);
+       } else if (kind == 2) {
+           GLfloat ambiant = 0.22;
+           GLfloat mat_ambiant[] = { ambiant, ambiant, ambiant, 1.0 };
+           GLfloat mat_diffuse[] = { 1.0 - ambiant, 1.0 - ambiant, 1.0 - ambiant, 1.0 };
+           GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+           GLfloat mat_shininess[] = { 60.0 };
+           GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
+           glClearColor (0.0, 0.0, 0.0, 0.0);
+
+           glLightModelfv(GL_LIGHT_MODEL_AMBIENT, mat_ambiant);
+
+           // Light 0
+           glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+           glLightfv(GL_LIGHT0, GL_DIFFUSE, mat_diffuse);
+           glLightfv(GL_LIGHT0, GL_SPECULAR, mat_diffuse); // cannot see that ...
+           glLightfv(GL_LIGHT0, GL_SHININESS, mat_shininess);
+
+           // Light 1
+           GLfloat mat1_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+           GLfloat light1_position[] = { -0.7, -0.7, -0.7, 0.0 };
+           glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
+           glLightfv(GL_LIGHT1, GL_DIFFUSE, mat1_diffuse);
+           glLightfv(GL_LIGHT1, GL_SPECULAR, mat_diffuse);
+           glLightfv(GL_LIGHT1, GL_SHININESS, mat_shininess);
+
+           glShadeModel(GL_SMOOTH);
+           glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
+           glEnable(GL_COLOR_MATERIAL);
+           glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+           glEnable(GL_LIGHTING);
+           glEnable(GL_LIGHT0);
+           glEnable(GL_LIGHT1);
+           glEnable(GL_DEPTH_TEST);
+       }
+    }
 
     void init_gl() { // from nehe
+        glEnable(GL_MULTISAMPLE_ARB);
+
         glShadeModel(GL_SMOOTH);	           // Enables Smooth Shading
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);  // Black Background
         glClearDepth(1.0f);                    // Depth Buffer Setup
@@ -120,15 +182,15 @@ void init_gl_red_book(void)
 
     void render() {
         init_gl();
-        init_gl_red_book();
-        // set_default_light();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        draw_bg();
+        set_default_light();
         set_matrix(scene.view);
         render_obj();
     }
 
     void render_obj() {
         // Clear The Screen And The Depth Buffer
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         GLubyte diffuse[3] = { 51.0, 51.0, 255.0 };
         glColor3ubv( diffuse );
@@ -136,23 +198,26 @@ void init_gl_red_book(void)
         glBegin(GL_TRIANGLES);
         for (size_t i = 0; i < scene.faces.size(); ++i) {
 
+            face f = scene.faces[i];
             if (! scene.faces_normals.empty()) {
                 face fn = scene.faces_normals[i];
                 glNormal3f( scene.normals[fn.p1].x, 
                             scene.normals[fn.p1].y,  
                             scene.normals[fn.p1].z );
+                glVertex3f( scene.verts[f.p1].x, scene.verts[f.p1].y, scene.verts[f.p1].z );
                 glNormal3f( scene.normals[fn.p2].x, 
                             scene.normals[fn.p2].y,
                             scene.normals[fn.p2].z );
+                glVertex3f( scene.verts[f.p2].x, scene.verts[f.p2].y, scene.verts[f.p2].z );
                 glNormal3f( scene.normals[fn.p3].x, 
                             scene.normals[fn.p3].y,
                             scene.normals[fn.p3].z );
+                glVertex3f( scene.verts[f.p3].x, scene.verts[f.p3].y, scene.verts[f.p3].z );
+            } else {
+                glVertex3f( scene.verts[f.p1].x, scene.verts[f.p1].y, scene.verts[f.p1].z );
+                glVertex3f( scene.verts[f.p2].x, scene.verts[f.p2].y, scene.verts[f.p2].z );
+                glVertex3f( scene.verts[f.p3].x, scene.verts[f.p3].y, scene.verts[f.p3].z );
             }
-
-            face f = scene.faces[i];
-            glVertex3f( scene.verts[f.p1].x, scene.verts[f.p1].y, scene.verts[f.p1].z );
-            glVertex3f( scene.verts[f.p2].x, scene.verts[f.p2].y, scene.verts[f.p2].z );
-            glVertex3f( scene.verts[f.p3].x, scene.verts[f.p3].y, scene.verts[f.p3].z );
         }
         glEnd();
     }
@@ -217,51 +282,5 @@ void init_gl_red_book(void)
         gluLookAt (	view.eye.x,  view.eye.y,  view.eye.z,
                     view.tget.x, view.tget.y, view.tget.z,
                     vup.x,  vup.y,  vup.z  );
-    }
-
-    void set_default_light() {
-        /* http://www.sjbaker.org/steve/omniv/opengl_lighting.html */
-        // Needed because when passing light infos : The position is transformed by the
-        // modelview matrix when glLight is called (just as if it were a point), and it
-        // is stored in eye coordinates.  If the w component of the position is 0.0, the
-        // light is treated as a directional source. 
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-
-        glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
-
-        // glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, matShine)
-        // Original position: {1, 1, 0}
-        // GLfloat position[3] = {1, 1, 0};
-        vertex look = { 0.0, 0.0, -1.0 };
-        quaternion quat = common_quaternion_from_angles(30.0, 30.0, 0.0);
-        vertex v = multiply_point_by_matrix(quaternion_to_matrix(quat), look);
-        GLfloat position[3] = { -v.x, -v.y, -v.z };
-        
-        glLightfv(GL_LIGHT0, GL_POSITION, position);
-        GLfloat diffuse[4] = {1, 1, 1, 0};
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-        GLfloat specular[4] = {1, 1, 1, 0};
-        glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
-        GLfloat ambiant[4] = {0, 0, 0, 1};
-        glLightfv(GL_LIGHT0, GL_AMBIENT, ambiant);
-
-        GLfloat scene_ambiant[4] = {0.2, 0.2, 0.2, 1};
-        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, scene_ambiant);
-
-        glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
-        glEnable(GL_COLOR_MATERIAL);
-        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-        glShadeModel(GL_SMOOTH);
-
-        // restore modelview
-        glPopMatrix();
-
-        GLfloat material_emission[4] = {0, 0, 0, 1};
-        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, material_emission);
-        GLfloat material_specular[4] = {1, 1, 1, 1};
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
     }
 };
