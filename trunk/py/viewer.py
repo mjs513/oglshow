@@ -141,8 +141,11 @@ class OglSdk:
 
         # Grid setup
         if self.octree:
-            with benchmark('build octree'):
-                self.octree = Octree(self.scene)
+            setup_octree()
+
+    def setup_octree(self):
+        with benchmark('build octree'):
+            self.octree = Octree(self.scene)
 
     def setup_vbo(self):
         glInitVertexBufferObjectARB()
@@ -353,7 +356,7 @@ class OglSdk:
             elif self.highlight_implementation == "CPython":
                 do_highlight_C(self.highlight_cursor, self.scene.faces, self.scene.points)
             elif self.highlight_implementation == "octree":
-                do_highlight_octree(self.octree, self.highlight_cursor, self.scene.faces, self.scene.points)
+                do_highlight_octree(self.octree, self.highlight_cursor, self.scene.faces, self.scene.points, self.scene.views[0])
 
         if self.draw_octree:
             if self.octree_dl is not None:

@@ -11,6 +11,7 @@ import sys
 sys.path.insert(0, 'cpython/build/lib.macosx-10.5-i386-2.5')
 from cobj import setup, projall, gethits
 
+from math_utils import vsub
 from utils import benchmark
 import viewer
 
@@ -222,5 +223,24 @@ def do_highlight_C(highlight_cursor, faces, points):
         display_hits(hits, points)
         return True
 
-def do_highlight_octree(octree, highlight_cursor):
-    pass
+def do_highlight_octree(octree, mouse, faces, points, sc_view):
+    model = glGetDoublev( GL_MODELVIEW_MATRIX )
+    proj = glGetDoublev( GL_PROJECTION_MATRIX )
+    view = glGetIntegerv( GL_VIEWPORT )
+
+    tget = gluUnProject(mouse[0], mouse[1], 0, model, proj, view)
+
+    segment = (sc_view.eye, tget)
+    hit = octree.intersect(segment)
+
+    if hit:
+        print hit
+        hit = hit[0]
+        with in_red():
+            glBegin(GL_TRIANGLES)
+            glVertex3fv(points[hit[0]])
+            glVertex3fv(points[hit[1]])
+            glVertex3fv(points[hit[2]])
+            glEnd()
+    else:
+        print 'no hit'

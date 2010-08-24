@@ -242,27 +242,27 @@ def rayIntersectsTriangle(p, d, v0, v1, v2):
     a = vdot(e1, h)
 
     if a > -0.00001 and a < 0.00001:
-        return False
+        return None
 
     f = 1.0 / a;
     s = vsub(p, v0)
     u = f * vdot(s, h)
 
     if u < 0.0 or u > 1.0:
-        return False
+        return None
 
     q = vcross(s, e1)
     v = f * vdot(d,q);
     if v < 0.0 or u + v > 1.0:
-        return False
+        return None
 
     # at this stage we can compute t to find out where 
     # the intersection point is on the line
     t = f * vdot(e2,q)
     if t > 0.00001: # ray intersection
-        return True
+        return vadd(d, vscale(p, t))
     else: # this means that there is a line intersection but not a ray intersection
-        return False
+        return None
 
 def rayIntersectsQuad(ray, face):
     ''' FIXME '''
