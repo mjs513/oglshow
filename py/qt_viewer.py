@@ -73,9 +73,11 @@ class Window(QtGui.QMainWindow):
             if event.modifiers() == QtCore.Qt.ShiftModifier:
                 sdk.highlight_implementation = "Python"
             elif event.modifiers() == QtCore.Qt.AltModifier:
-                sdk.highlight_implementation = "octree"
-            else:
                 sdk.highlight_implementation = "CPython"
+            else:
+                sdk.highlight_implementation = "octree"
+                sdk.setup_octree()
+                sdk.draw_octree = False
 
             self.glWidget.setMouseTracking(sdk.highlight)
         if event.key() == QtCore.Qt.Key_G: # Grid

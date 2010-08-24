@@ -166,4 +166,4 @@ def read_geom(input):
 
 
 if __name__ == '__main__':
-    test2()
+    test5()

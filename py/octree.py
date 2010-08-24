@@ -7,12 +7,13 @@ from scene import Scene, load, ArgsOptions
 from pdb import set_trace
 from utils import _err_exit, benchmark
 
-from math_utils import rayIntersectsTriangle, vsub
+from math_utils import rayIntersectsTriangle, vsub, distance
 
 def print_tri(v1, v2, v3):
     print v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]
 
 class Octree():
+    __slots__ = ('root', 'bb', 'childs', 'vertices')
     def __init__(self, sc = None):
 
         self.vertices = []
@@ -30,7 +31,7 @@ class Octree():
             max_depth = 50
             self.root = build(self, sc.bb, vertices, 0, max_depth)
 
-    def intersect(self, segment):
+    def intersect_tris(self, segment):
         def ray_intersect_octree_rec(node, ray, sc):
             ret = []
             if node.bb.intersect(ray):
@@ -44,7 +45,7 @@ class Octree():
                         # print_tri( v1, v2, v3 )
                         # print 'hit ?', intersection
                         if intersection:
-                            ret.append(t)
+                            ret.append( (t, intersection) )
 
                 for child in node.childs:
                     ret.extend( ray_intersect_octree_rec(child, ray, sc) )
@@ -55,6 +56,13 @@ class Octree():
         ray[0] = segment[0]
         ray[1] = vsub(segment[1], segment[0])
         return ray_intersect_octree_rec(self.root, ray, self.root.sc)
+
+    def intersect(self, segment):
+        tris = self.intersect_tris(segment)
+        if tris:
+            print tris, segment[0]
+            return min(tris, key=lambda x: distance(x[1], segment[0]))
+        return None
 
     def write(self):
         from cPickle import dumps, loads
