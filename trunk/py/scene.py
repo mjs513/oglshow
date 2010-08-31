@@ -22,6 +22,7 @@ from math_utils import multiply_point_by_matrix as point_by_matrix
 from math_utils import quaternion_to_matrix
 from math_utils import distance, add
 from math_utils import rayIntersectsQuad
+from math_utils import build_ray
 
 class BoundingBox:
     def __init__(self, A=None, B=None):
@@ -164,6 +165,11 @@ class BoundingBox:
                rayIntersectsQuad(ray, bottom) or \
                rayIntersectsQuad(ray, right) or \
                rayIntersectsQuad(ray, left) 
+    
+    def intersect_triangle(self, face, verts):
+        return self.intersect( build_ray( (verts[face[0]], verts[face[1]]) ) ) or \
+               self.intersect( build_ray( (verts[face[1]], verts[face[2]]) ) ) or \
+               self.intersect( build_ray( (verts[face[2]], verts[face[0]]) ) )
 
     def __str__(self):
         s = '\nxmin %f xmax %f\n' % (self.xmin, self.xmax)
@@ -188,8 +194,9 @@ class View:
         self.recenterY = 0.0
         self.focal = 32.0
         self.quat = common_quaternion_from_angles(180, 45+22.5, 0 )
+        self.quat = [-0.23, 0.40, 0.090, 0.88]
 
-        recul = 2.0 * _bb.sphere_beam()
+        recul = 1.5 * _bb.sphere_beam()
         if False: # try to mimic cpp but that does not work
             look = [0.0, 0.0, recul]
             self.eye = point_by_matrix(quaternion_to_matrix(self.quat), look)
