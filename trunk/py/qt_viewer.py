@@ -77,7 +77,7 @@ class Window(QtGui.QMainWindow):
             else:
                 sdk.highlight_implementation = "octree"
                 sdk.setup_octree()
-                sdk.draw_octree = False
+                sdk.draw_octree = True
 
             self.glWidget.setMouseTracking(sdk.highlight)
         if event.key() == QtCore.Qt.Key_G: # Grid
