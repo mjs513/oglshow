@@ -231,7 +231,8 @@ def do_highlight_octree(octree, mouse, faces, points, sc_view):
     tget = gluUnProject(mouse[0], mouse[1], 0, model, proj, view)
 
     segment = (sc_view.eye, tget)
-    hit = octree.intersect(segment)
+    with benchmark('ray octree'):
+        hit = octree.intersect(segment)
 
     if hit:
         print hit

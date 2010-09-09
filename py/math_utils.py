@@ -260,7 +260,7 @@ def rayIntersectsTriangle(p, d, v0, v1, v2):
     # the intersection point is on the line
     t = f * vdot(e2,q)
     if t > 0.00001: # ray intersection
-        return vadd(d, vscale(p, t))
+        return vadd(p, vscale(d, t))
     else: # this means that there is a line intersection but not a ray intersection
         return None
 
@@ -270,6 +270,12 @@ def rayIntersectsQuad(ray, face):
     v0, v1, v2, v3 = face
     return rayIntersectsTriangle(p, d, v0, v1, v2) or \
            rayIntersectsTriangle(p, d, v2, v3, v0)
+
+def build_ray(segment):
+    ray = 2*[0.0]
+    ray[0] = segment[0]
+    ray[1] = vsub(segment[1], segment[0])
+    return ray
 
 if __name__ == '__main__':
     p1 = [1, 0, 0]

@@ -7,13 +7,12 @@ from scene import Scene, load, ArgsOptions
 from pdb import set_trace
 from utils import _err_exit, benchmark
 
-from math_utils import rayIntersectsTriangle, vsub, distance
+from math_utils import rayIntersectsTriangle, vsub, build_ray, distance
 
 def print_tri(v1, v2, v3):
     print v1[0], v1[1], v1[2], v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]
 
 class Octree():
-    __slots__ = ('root', 'bb', 'childs', 'vertices')
     def __init__(self, sc = None):
 
         self.vertices = []
@@ -31,7 +30,7 @@ class Octree():
             max_depth = 50
             self.root = build(self, sc.bb, vertices, 0, max_depth)
 
-    def intersect_tris(self, segment):
+    def intersect(self, segment):
         def ray_intersect_octree_rec(node, ray, sc):
             ret = []
             if node.bb.intersect(ray):
@@ -52,15 +51,10 @@ class Octree():
 
             return ret
     
-        ray = 2*[0.0]
-        ray[0] = segment[0]
-        ray[1] = vsub(segment[1], segment[0])
-        return ray_intersect_octree_rec(self.root, ray, self.root.sc)
-
-    def intersect(self, segment):
-        tris = self.intersect_tris(segment)
+        # print segment # debug
+        ray = build_ray(segment)
+        tris = ray_intersect_octree_rec(self.root, ray, self.root.sc)
         if tris:
-            print tris, segment[0]
             return min(tris, key=lambda x: distance(x[1], segment[0]))
         return None
 
@@ -102,9 +96,13 @@ def main():
     with benchmark('build octree'):
         octree = Octree(sc)
 
-    ray = (octree.bb.min(), octree.bb.max())
+    segment = (octree.bb.min(), octree.bb.max())
     with benchmark('ray octree'):
-        print octree.intersect(ray)
+        print octree.intersect(segment)
+
+    # debug 
+    segment = ([6.0124801866126916, -0.51249832634225589, -9.7930512397503584], (5.9371910904864844, -0.50190367657896617, -10.093763375438117))
+    assert octree.intersect(segment)
 
     octree.write()
 
