@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     }
 
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
 
     // glutInitWindowPosition(100, 100):
     glutInitWindowSize(sdk.w, sdk.h);
