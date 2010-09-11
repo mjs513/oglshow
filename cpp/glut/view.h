@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <limits>
 using std::string;
 using std::cout;
 using std::endl;
@@ -18,10 +19,18 @@ public:
     int button, motion;
     Scene scene;
     Trackball trackball;
-    enum render_mode { immediate, display_list };
+    enum render_mode_enum { immediate, display_list };
+    render_mode_enum render_mode;
     bool verbose;
+    GLuint list;
+    GLuint max_uint;
 
-    OglSdk(): verbose(false) {}
+    OglSdk() { 
+        verbose = false;
+        render_mode = display_list; 
+        max_uint = std::numeric_limits<GLuint>::max();
+        list = max_uint;
+    }
 
     void load_file(const char* fn) {
         scene = load(fn);
@@ -193,8 +202,25 @@ public:
     }
 
     void render_obj() {
-        // Clear The Screen And The Depth Buffer
+        if (render_mode == display_list) {
+            if (list == max_uint) {
+                puts("build list");
+                list = glGenLists(1);
+                glNewList(list, GL_COMPILE);
+                send_geometry();
+                glEndList();
+            }
+        }
 
+        if (render_mode == immediate)
+            send_geometry();
+
+        if (render_mode == display_list) {
+            glCallList(list);
+        }
+    }
+
+    void send_geometry() {
         GLubyte diffuse[3] = { 51.0, 51.0, 255.0 };
         glColor3ubv( diffuse );
 
