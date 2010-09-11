@@ -49,7 +49,8 @@ public:
         end = mach_absolute_time();  
         struct timespec tp;  
         mach_absolute_difference(end, start, &tp);  
-        printf("%lu seconds, %lu nanoseconds\n", tp.tv_sec, tp.tv_nsec);  
+        printf("%lu seconds, %09lu nanoseconds %d fps\n", 
+            tp.tv_sec, tp.tv_nsec, (int) (1.0f / (tp.tv_nsec/1e9)));  
     }
     void mach_absolute_difference(uint64_t end, uint64_t start, 
                                   struct timespec *tp) {  
