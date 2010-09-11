@@ -30,10 +30,50 @@ void ogl_mouse(int button, int button_state, int x, int y) {
     glutPostRedisplay(); // ask for a refresh
 }
 
+// FIXME: This should go in a timer|chrono.h file
+#include <mach/mach_time.h>  
+#include <time.h>  
+#include <stdio.h>  
+
+// MacOSX
+// http://www.wand.net.nz/~smr26/wordpress/2009/01/19/monotonic-time-in-mac-os-x/
+// Linux
+// Check http://www.opengroup.org/onlinepubs/007908799/xsh/clock_gettime.html
+class Chrono
+{
+public:
+    Chrono() {
+        start = mach_absolute_time();  
+    }
+    void get() {
+        end = mach_absolute_time();  
+        struct timespec tp;  
+        mach_absolute_difference(end, start, &tp);  
+        printf("%lu seconds, %lu nanoseconds\n", tp.tv_sec, tp.tv_nsec);  
+    }
+    void mach_absolute_difference(uint64_t end, uint64_t start, 
+                                  struct timespec *tp) {  
+        uint64_t difference = end - start;  
+        static mach_timebase_info_data_t info = {0,0};  
+
+        if (info.denom == 0)  
+            mach_timebase_info(&info);  
+
+        uint64_t elapsednano = difference * (info.numer / info.denom);  
+
+        tp->tv_sec = elapsednano * 1e-9;  
+        tp->tv_nsec = elapsednano - (tp->tv_sec * 1e9);  
+    }  
+
+    uint64_t start,end;  
+};
+  
 void ogl_display(void) {
+    Chrono c;
     sdk.render();
     // FIXME glutSetWindowTitle('FPS: ' + sdk.fps)'
     glutSwapBuffers(); 
+    c.get();
 }
 
 void ogl_reshape(int w, int h) {

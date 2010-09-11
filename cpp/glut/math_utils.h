@@ -129,16 +129,9 @@ quaternion add_quat(quaternion q1, quaternion q2) {
     vertex t2 = { q2.qx, q2.qy, q2.qz };
 
     vertex t3 = vcross(t2, t1);
-    puts("vcross t2 t1");
-    print_vert(t3);
 
     vscale(t1, q2.qw);
     vscale(t2, q1.qw);
-
-    puts("t1");
-    print_vert(t1);
-    puts("t2");
-    print_vert(t2);
 
     vertex tf = vadd(t1, t2);
     tf = vadd(t3, tf);
@@ -196,7 +189,6 @@ public:
             vertex P2 = { p2x_u, p2y_u, __track_project_to_sphere(p2x_u, p2y_u) };
 
             vertex a = vcross(P2, P1);
-            print_vert(a);
 			
             // Figure out how much to rotate around that axis.
             vertex d = sub(P1, P2);

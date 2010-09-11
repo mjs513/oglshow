@@ -18,16 +18,19 @@ public:
     int button, motion;
     Scene scene;
     Trackball trackball;
+    enum render_mode { immediate, display_list };
+    bool verbose;
 
-    OglSdk() {}
+    OglSdk(): verbose(false) {}
 
     void load_file(const char* fn) {
         scene = load(fn);
-        scene.print(true);
+        if (verbose) scene.print(true);
     }
 
     void pointer_move(string m, int xstart, int ystart, int xend, int yend) {
-        cout << m << " " << xstart << " " << ystart << " " << xend << " " << yend << endl;
+        if (verbose) 
+            cout << m << " " << xstart << " " << ystart << " " << xend << " " << yend << endl;
         float ww = w;
         float wh = h;
 
@@ -57,9 +60,9 @@ public:
             scene.view.recenterY +=  k*(scene.view.focal/DEFAULT_ZOOM) * (prevY - newY);
         } else if (m == "rotate") {
             quaternion spin_quat = trackball.update(xstart, ystart, xend, yend, ww, wh);
-            print_quaternion(spin_quat);
+            if (verbose) print_quaternion(spin_quat);
             scene.view.quat = add_quat(spin_quat, scene.view.quat);
-            print_quaternion(scene.view.quat);
+            if (verbose) print_quaternion(scene.view.quat);
         }
     }
 
@@ -229,7 +232,7 @@ public:
     }
 
     void set_matrix(View& view) {
-        puts("set_matrix");
+        if (verbose) puts("set_matrix");
 
         // Projection
         glMatrixMode( GL_PROJECTION );
@@ -250,7 +253,7 @@ public:
         if (pixel_ratio < 1)
             zF /= pixel_ratio;
 
-        if (true) printf("gluPerspective %f %f %f %f\n", zF*30, pixel_ratio, zNear, zFar);
+        if (verbose) printf("gluPerspective %f %f %f %f\n", zF*30, pixel_ratio, zNear, zFar);
         gluPerspective (zF*30, pixel_ratio, zNear, zFar);
 
         // Model View
@@ -270,7 +273,7 @@ public:
         vertex vup = multiply_point_by_matrix(rotation_matrix, yup);
 
         // debug
-        if (true) {
+        if (verbose) {
             printf("gluLookAt eye ");
             print_vert(view.eye);
             printf("gluLookAt tget ");
