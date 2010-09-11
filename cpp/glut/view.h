@@ -19,17 +19,27 @@ public:
     int button, motion;
     Scene scene;
     Trackball trackball;
-    enum render_mode_enum { immediate, display_list };
+    enum render_mode_enum { immediate, display_list, buffer };
     render_mode_enum render_mode;
     bool verbose;
     GLuint list;
     GLuint max_uint;
 
+    struct gl_vertex {
+        float position[3];
+        float normal[3];
+        // float color[3];
+        // float texture[2];
+    };
+    GLuint vbo;
+    gl_vertex* model;
+
     OglSdk() { 
         verbose = false;
-        render_mode = display_list; 
+        render_mode = buffer; // display_list; 
         max_uint = std::numeric_limits<GLuint>::max();
         list = max_uint;
+        model = NULL;
     }
 
     void load_file(const char* fn) {
@@ -181,7 +191,7 @@ public:
     }
 
     void init_gl() { // from nehe
-        glEnable(GL_MULTISAMPLE_ARB);
+        glEnable(GL_MULTISAMPLE);
 
         glShadeModel(GL_SMOOTH);	           // Enables Smooth Shading
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);  // Black Background
@@ -214,6 +224,8 @@ public:
 
         if (render_mode == immediate)
             send_geometry();
+        if (render_mode == buffer)
+            send_geometry_buffer();
 
         if (render_mode == display_list) {
             glCallList(list);
@@ -223,7 +235,7 @@ public:
     void send_geometry() {
         GLubyte diffuse[3] = { 51.0, 51.0, 255.0 };
         glColor3ubv( diffuse );
-
+        
         glBegin(GL_TRIANGLES);
         for (size_t i = 0; i < scene.faces.size(); ++i) {
 
@@ -249,6 +261,73 @@ public:
             }
         }
         glEnd();
+    }
+
+    void send_geometry_buffer() {
+        GLubyte diffuse[3] = { 51.0, 51.0, 255.0 };
+        glColor3ubv( diffuse );
+
+        bool has_normals = ! scene.faces_normals.empty();
+        if (model == NULL) {
+            // glInitVertexBufferObjectARB(); // PyOpenGL only ... ?
+            glGenBuffersARB(1, &vbo);
+            model = new gl_vertex[3 * scene.faces.size()];
+        
+            for (size_t i = 0; i < scene.faces.size(); ++i) {
+
+                face f = scene.faces[i];
+                face fn = scene.faces_normals[i];
+                gl_vertex v;
+
+                v.position[0] = scene.verts[f.p1].x; 
+                v.position[1] = scene.verts[f.p1].y; 
+                v.position[2] = scene.verts[f.p1].z; 
+                if (has_normals) {
+                    v.normal[0] = scene.normals[fn.p1].x; 
+                    v.normal[1] = scene.normals[fn.p1].y; 
+                    v.normal[2] = scene.normals[fn.p1].z; 
+                }
+                model[3*i] = v;
+
+                v.position[0] = scene.verts[f.p2].x; 
+                v.position[1] = scene.verts[f.p2].y; 
+                v.position[2] = scene.verts[f.p2].z; 
+                if (has_normals) {
+                    v.normal[0] = scene.normals[fn.p2].x; 
+                    v.normal[1] = scene.normals[fn.p2].y; 
+                    v.normal[2] = scene.normals[fn.p2].z; 
+                }
+                model[3*i + 1] = v;
+
+                v.position[0] = scene.verts[f.p3].x; 
+                v.position[1] = scene.verts[f.p3].y; 
+                v.position[2] = scene.verts[f.p3].z; 
+                if (has_normals) {
+                    v.normal[0] = scene.normals[fn.p3].x; 
+                    v.normal[1] = scene.normals[fn.p3].y; 
+                    v.normal[2] = scene.normals[fn.p3].z; 
+                }
+                model[3*i + 2] = v;
+            }
+            glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbo );
+            glBufferDataARB( GL_ARRAY_BUFFER_ARB, 3 * scene.faces.size() * sizeof(gl_vertex), 
+                             model, GL_STATIC_DRAW_ARB );
+        }
+
+        glEnableClientState( GL_VERTEX_ARRAY );
+        if (has_normals)
+            glEnableClientState( GL_NORMAL_ARRAY );
+
+        glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbo );
+        glVertexPointer(3, GL_FLOAT, sizeof(gl_vertex), (char*) NULL + 0);
+        if (has_normals)
+            glNormalPointer(GL_FLOAT, sizeof(gl_vertex),    (char*) NULL + 12);
+
+        glDrawArrays( GL_TRIANGLES, 0, 3 * scene.faces.size() ); // #points
+
+        glDisableClientState( GL_VERTEX_ARRAY );
+        if (has_normals)
+            glDisableClientState( GL_NORMAL_ARRAY );
     }
 
     void reshape(int _w, int _h) {
