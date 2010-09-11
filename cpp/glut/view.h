@@ -321,7 +321,7 @@ public:
         glBindBufferARB( GL_ARRAY_BUFFER_ARB, vbo );
         glVertexPointer(3, GL_FLOAT, sizeof(gl_vertex), (char*) NULL + 0);
         if (has_normals)
-            glNormalPointer(GL_FLOAT, sizeof(gl_vertex),    (char*) NULL + 12);
+            glNormalPointer(GL_FLOAT, sizeof(gl_vertex),    (char*) NULL + 3*sizeof(float));
 
         glDrawArrays( GL_TRIANGLES, 0, 3 * scene.faces.size() ); // #points
 
