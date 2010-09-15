@@ -122,6 +122,12 @@ vertex vadd(vertex v1, vertex v2) {
     vertex v = { v1.x + v2.x, v1.y + v2.y, v1.z + v2.z };
     return v;
 }
+
+vertex vnorm(vertex v1) {
+    float inv_N = 1.0f / norm(v1);
+    vertex v = { v1.x * inv_N, v1.y * inv_N, v1.z * inv_N };
+    return v;
+}
 // vertex should be vectors here
 // this is different from a regular quat (bad name)
 quaternion add_quat(quaternion q1, quaternion q2) {
