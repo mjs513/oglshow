@@ -224,7 +224,10 @@ public:
     void compute_normals() {
         vertex* triangle_normals = new vertex[faces.size()];
         list<int>* vert_faces = new list<int>[verts.size()];
+        normals.resize(3 * faces.size());
+        faces_normals.resize(faces.size());
 
+        // #pragma omp parallel for 
         for (size_t i = 0; i < faces.size(); ++i) {
             printf("\r%zu", i);
             vertex p1 = verts[faces[i].p1];
@@ -241,6 +244,15 @@ public:
         puts("\ntable computed");
 
         int k = 0;
+        // #pragma omp parallel for 
+        for (size_t i = 0; i < faces.size(); ++i) {
+            face fn = { 3*k, 3*k+1, 3*k+2 };
+            faces_normals[i] = fn;
+            k += 1;
+        }
+
+        k = 0;
+        // #pragma omp parallel for 
         for (size_t i = 0; i < faces.size(); ++i) {
             printf("\r%zu", i);
             
@@ -258,7 +270,7 @@ public:
             }
             
             vertex N = { X/cnt, Y/cnt, Z/cnt };
-            normals.push_back( vnorm(N) );
+            normals[3*k] = vnorm(N);
 
             X = 0.0f; Y = 0.0f; Z = 0.0f;
             it  = vert_faces[ faces[i].p2 ].begin();
@@ -270,7 +282,7 @@ public:
             }
             
             vertex P = { X/cnt, Y/cnt, Z/cnt };
-            normals.push_back( vnorm(P) );
+            normals[3*k+1] = vnorm(P);
 
             X = 0.0f; Y = 0.0f; Z = 0.0f;
             it  = vert_faces[ faces[i].p3 ].begin();
@@ -282,10 +294,7 @@ public:
             }
             
             vertex R = { X/cnt, Y/cnt, Z/cnt };
-            normals.push_back( vnorm(R) );
-
-            face fn = { 3*k, 3*k+1, 3*k+2 };
-            faces_normals.push_back( fn );
+            normals[3*k+2] = vnorm(R);
             k += 1;
         }
         puts("\nnorms computed");
@@ -296,9 +305,11 @@ public:
 };
 
 extern Scene load(const char* fn) {
+    Chrono c;
     Scene sc;
     sc.read(fn);
     sc.compute_bb();
     sc.view.reset(sc.bb);
+    printf("load scene: "); c.get();
     return sc;
 }

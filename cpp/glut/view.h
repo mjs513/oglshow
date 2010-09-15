@@ -45,7 +45,9 @@ public:
     void load_file(const char* fn) {
         scene = load(fn);
         if (scene.faces_normals.empty()) {
+            Chrono c;
             scene.compute_normals();
+            printf("compute normals: "); c.get();
         }
 
         if (verbose) scene.print(true);
