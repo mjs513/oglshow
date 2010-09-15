@@ -1,11 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <list>
 #include <limits>
 
 #include <stdio.h>
 
 using std::vector;
+using std::list;
 using std::min;
 using std::max;
 using std::numeric_limits;
@@ -217,6 +219,79 @@ public:
                 }
             }
         }
+    }
+
+    void compute_normals() {
+        vertex* triangle_normals = new vertex[faces.size()];
+        list<int>* vert_faces = new list<int>[verts.size()];
+
+        for (size_t i = 0; i < faces.size(); ++i) {
+            printf("\r%zu", i);
+            vertex p1 = verts[faces[i].p1];
+            vertex p2 = verts[faces[i].p2];
+            vertex p3 = verts[faces[i].p3];
+
+            triangle_normals[i] = 
+                vnorm(vcross(sub(p2, p1), sub(p3, p1)));
+
+            vert_faces[faces[i].p1].push_back(i);
+            vert_faces[faces[i].p2].push_back(i);
+            vert_faces[faces[i].p3].push_back(i);
+        }
+        puts("\ntable computed");
+
+        int k = 0;
+        for (size_t i = 0; i < faces.size(); ++i) {
+            printf("\r%zu", i);
+            
+            float X, Y, Z;
+            size_t cnt;
+            list<int>::const_iterator it, end;
+
+            X = 0.0f; Y = 0.0f; Z = 0.0f;
+            it  = vert_faces[ faces[i].p1 ].begin();
+            end = vert_faces[ faces[i].p1 ].end();
+            cnt = vert_faces[ faces[i].p1 ].size();
+            for (; it != end; ++it) {
+                vertex v = triangle_normals[*it];
+                X += v.x; Y += v.y; Z += v.z;
+            }
+            
+            vertex N = { X/cnt, Y/cnt, Z/cnt };
+            normals.push_back( vnorm(N) );
+
+            X = 0.0f; Y = 0.0f; Z = 0.0f;
+            it  = vert_faces[ faces[i].p2 ].begin();
+            end = vert_faces[ faces[i].p2 ].end();
+            cnt = vert_faces[ faces[i].p2 ].size();
+            for (; it != end; ++it) {
+                vertex v = triangle_normals[*it];
+                X += v.x; Y += v.y; Z += v.z;
+            }
+            
+            vertex P = { X/cnt, Y/cnt, Z/cnt };
+            normals.push_back( vnorm(P) );
+
+            X = 0.0f; Y = 0.0f; Z = 0.0f;
+            it  = vert_faces[ faces[i].p3 ].begin();
+            end = vert_faces[ faces[i].p3 ].end();
+            cnt = vert_faces[ faces[i].p3 ].size();
+            for (; it != end; ++it) {
+                vertex v = triangle_normals[*it];
+                X += v.x; Y += v.y; Z += v.z;
+            }
+            
+            vertex R = { X/cnt, Y/cnt, Z/cnt };
+            normals.push_back( vnorm(R) );
+
+            face fn = { 3*k, 3*k+1, 3*k+2 };
+            faces_normals.push_back( fn );
+            k += 1;
+        }
+        puts("\nnorms computed");
+
+        delete [] triangle_normals;
+        delete [] vert_faces;
     }
 };
 

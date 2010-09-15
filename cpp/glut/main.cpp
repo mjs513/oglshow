@@ -8,6 +8,7 @@ int test1() {
     printf("%f\n", sc.bb.sphere_beam());
     print_vert( sc.bb.center());
 
+    sc.compute_normals();
     sc.view.reset(sc.bb);
     sc.view.print();
 }
@@ -53,7 +54,14 @@ int test4() {
     }
 }
 
+int test5() {
+    Scene sc = load("../../py/test/data/gears.obj");
+    // Scene sc = load("../../py/test/data/lucy.obj");
+    puts("loaded");
+    sc.compute_normals();
+}
+
 int main() {
-    test2();
+    test5();
     return 0;
 }

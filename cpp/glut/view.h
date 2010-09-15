@@ -44,6 +44,10 @@ public:
 
     void load_file(const char* fn) {
         scene = load(fn);
+        if (scene.faces_normals.empty()) {
+            scene.compute_normals();
+        }
+
         if (verbose) scene.print(true);
     }
 
