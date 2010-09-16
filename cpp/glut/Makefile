@@ -1,6 +1,6 @@
 all: view
 view:
-	g++ -Werror -O4 -framework GLUT -framework OpenGL -framework Cocoa glut_viewer.cpp -o glut_viewer
+	g++ -Werror -g -O4 -framework GLUT -framework OpenGL -framework Cocoa glut_viewer.cpp -o glut_viewer
 
 test:
-	g++ -Werror -O4 -framework GLUT -framework OpenGL -framework Cocoa main.cpp -o unittest
+	g++ -Werror -g -framework GLUT -framework OpenGL -framework Cocoa main.cpp -o unittest

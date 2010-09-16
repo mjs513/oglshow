@@ -229,7 +229,7 @@ public:
 
         // #pragma omp parallel for 
         for (size_t i = 0; i < faces.size(); ++i) {
-            printf("\r%zu", i);
+            // printf("\r%zu", i);
             vertex p1 = verts[faces[i].p1];
             vertex p2 = verts[faces[i].p2];
             vertex p3 = verts[faces[i].p3];
@@ -254,7 +254,7 @@ public:
         k = 0;
         // #pragma omp parallel for 
         for (size_t i = 0; i < faces.size(); ++i) {
-            printf("\r%zu", i);
+            // printf("\r%zu", i);
             
             float X, Y, Z;
             size_t cnt;

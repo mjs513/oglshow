@@ -55,7 +55,7 @@ int test4() {
 }
 
 int test5() {
-    Scene sc = load("../../py/test/data/gears.obj");
+    Scene sc = load("../../py/test/data/buddha.obj");
     // Scene sc = load("../../py/test/data/lucy.obj");
     puts("loaded");
     sc.compute_normals();
