@@ -86,7 +86,7 @@ vertex sub(vertex A, vertex B) {
     vertex v = { A.x - B.x, A.y - B.y, A.z - B.z };
     return v;
 }
-float norm(vertex v) {
+float norm(const vertex &v) {
     return sqrt( square(v.x) + square(v.y) + square(v.z) );
 }
 float distance(vertex A, vertex B) {
@@ -104,7 +104,7 @@ void vscale(vertex& v, float s) {
     v.y *= s;
     v.z *= s;
 }
-vertex vcross(vertex v1, vertex v2) {
+vertex vcross(const vertex &v1, const vertex &v2) {
     vertex v = {
         v1.y * v2.z - v1.z * v2.y, 
         v1.z * v2.x - v1.x * v2.z, 
@@ -123,7 +123,7 @@ vertex vadd(vertex v1, vertex v2) {
     return v;
 }
 
-vertex vnorm(vertex v1) {
+vertex vnorm(const vertex &v1) {
     float inv_N = 1.0f / norm(v1);
     vertex v = { v1.x * inv_N, v1.y * inv_N, v1.z * inv_N };
     return v;
