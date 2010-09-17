@@ -140,18 +140,18 @@ public:
                 if (buf[0] == 'v' && buf[1] == ' ') {
                     vertex p;
                     // sscanf(buf+2, "%f %f %f", &p.x, &p.y, &p.z);
-                    p.x = strtod(buf+2, &end);
-                    p.y = strtod(end, &end);
-                    p.z = strtod(end, NULL);
+                    p.x = strtof(buf+2, &end);
+                    p.y = strtof(end, &end);
+                    p.z = strtof(end, NULL);
                     verts.push_back(p);
                     bb.add_point(p);
                 }
                 if (buf[0] == 'v' && buf[1] == 'n') {
                     vertex n;
                     // sscanf(buf+2, "%f %f %f", &n.x, &n.y, &n.z);
-                    n.x = strtod(buf+2, &end);
-                    n.y = strtod(end, &end);
-                    n.z = strtod(end, NULL);
+                    n.x = strtof(buf+2, &end);
+                    n.y = strtof(end, &end);
+                    n.z = strtof(end, NULL);
                     normals.push_back(n);
                 }
                 if (buf[0] == 'f') {
