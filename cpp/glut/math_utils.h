@@ -82,7 +82,7 @@ vertex add(vertex A, vertex B) {
     vertex v = { A.x + B.x, A.y + B.y, A.z + B.z };
     return v;
 }
-vertex sub(vertex A, vertex B) {
+inline vertex sub(vertex A, vertex B) {
     vertex v = { A.x - B.x, A.y - B.y, A.z - B.z };
     return v;
 }
@@ -127,6 +127,12 @@ vertex vnorm(const vertex &v1) {
     float inv_N = 1.0f / norm(v1);
     vertex v = { v1.x * inv_N, v1.y * inv_N, v1.z * inv_N };
     return v;
+}
+void normalize(vertex &v1) {
+    float inv_N = 1.0f / norm(v1);
+    v1.x *= inv_N;
+    v1.y *= inv_N;
+    v1.z *= inv_N;
 }
 // vertex should be vectors here
 // this is different from a regular quat (bad name)
