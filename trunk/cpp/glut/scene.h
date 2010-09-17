@@ -256,7 +256,8 @@ public:
             vertex p3 = verts[faces[i].p3];
 
             triangle_normals[i] = 
-                vnorm(vcross(sub(p2, p1), sub(p3, p1)));
+                vcross(sub(p2, p1), sub(p3, p1));
+            normalize(triangle_normals[i]);
 
             vert_faces[faces[i].p1].push_back(i);
             vert_faces[faces[i].p2].push_back(i);
