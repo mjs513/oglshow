@@ -140,18 +140,18 @@ public:
                 if (buf[0] == 'v' && buf[1] == ' ') {
                     vertex p;
                     // sscanf(buf+2, "%f %f %f", &p.x, &p.y, &p.z);
-                    p.x = strtof(buf+2, &end);
-                    p.y = strtof(end, &end);
-                    p.z = strtof(end, NULL);
+                    p.x = strtod(buf+2, &end);
+                    p.y = strtod(end, &end);
+                    p.z = strtod(end, NULL);
                     verts.push_back(p);
                     bb.add_point(p);
                 }
                 if (buf[0] == 'v' && buf[1] == 'n') {
                     vertex n;
                     // sscanf(buf+2, "%f %f %f", &n.x, &n.y, &n.z);
-                    n.x = strtof(buf+2, &end);
-                    n.y = strtof(end, &end);
-                    n.z = strtof(end, NULL);
+                    n.x = strtod(buf+2, &end);
+                    n.y = strtod(end, &end);
+                    n.z = strtod(end, NULL);
                     normals.push_back(n);
                 }
                 if (buf[0] == 'f') {
@@ -239,9 +239,14 @@ public:
 
     void compute_normals() {
         vertex* triangle_normals = new vertex[faces.size()];
-        list<int>* vert_faces = new list<int>[verts.size()];
+        vector<int>* vert_faces = new vector<int>[verts.size()];
         normals.resize(3 * faces.size());
         faces_normals.resize(faces.size());
+
+        // Faster to do that than to use the default vector size
+        for (size_t i = 0; i < verts.size(); ++i) {
+            vert_faces[i].reserve(3);
+        }
 
         // #pragma omp parallel for 
         for (size_t i = 0; i < faces.size(); ++i) {
@@ -274,7 +279,7 @@ public:
             
             float X, Y, Z;
             size_t cnt;
-            list<int>::const_iterator it, end;
+            vector<int>::const_iterator it, end;
 
             X = 0.0f; Y = 0.0f; Z = 0.0f;
             it  = vert_faces[ faces[i].p1 ].begin();
