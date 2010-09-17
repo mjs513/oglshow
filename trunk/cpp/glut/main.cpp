@@ -55,10 +55,12 @@ int test4() {
 }
 
 int test5() {
-    Scene sc = load("../../py/test/data/buddha.obj");
+    Scene sc = load("../../py/test/data/blade.obj");
     // Scene sc = load("../../py/test/data/lucy.obj");
     puts("loaded");
+    Chrono c;
     sc.compute_normals();
+    printf("compute normals: "); c.get();
 }
 
 int main() {

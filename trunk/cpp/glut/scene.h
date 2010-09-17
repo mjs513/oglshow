@@ -134,35 +134,51 @@ public:
         if (f != NULL) {
             for (;;) {
                 char buf[1024];
+                char* end;
                 if (!fgets(buf, sizeof(buf), f)) break;
 
                 if (buf[0] == 'v' && buf[1] == ' ') {
                     vertex p;
-                    sscanf(buf+2, "%f %f %f", &p.x, &p.y, &p.z);
+                    // sscanf(buf+2, "%f %f %f", &p.x, &p.y, &p.z);
+                    p.x = strtod(buf+2, &end);
+                    p.y = strtod(end, &end);
+                    p.z = strtod(end, NULL);
                     verts.push_back(p);
                     bb.add_point(p);
                 }
                 if (buf[0] == 'v' && buf[1] == 'n') {
                     vertex n;
-                    sscanf(buf+2, "%f %f %f", &n.x, &n.y, &n.z);
+                    // sscanf(buf+2, "%f %f %f", &n.x, &n.y, &n.z);
+                    n.x = strtod(buf+2, &end);
+                    n.y = strtod(end, &end);
+                    n.z = strtod(end, NULL);
                     normals.push_back(n);
                 }
                 if (buf[0] == 'f') {
-                    char p1[255];
                     bool has_normals = false;
                     int f1, f2, f3, f4;
                     int n1, n2, n3, n4;
-                    int tmp;
-                    int cnt = sscanf(buf+2, "%s %s %s %s", p1, p1, p1, p1);
+                    int tmp = 2;
+                    int cnt = 1;
+                    // That dumb sscanf was used to count the number of elements
+                    // int cnt = sscanf(buf+2, "%s %s %s %s", p1, p1, p1, p1);
+                    while (buf[tmp] != '\0') {
+                        if (buf[tmp] == ' ') cnt++;
+                        if (buf[tmp] == '/') has_normals = true;
+                        tmp++;
+                    }
 
-                    if (strchr(p1, '/') == NULL) {
-                        if (cnt == 3)
-                            sscanf(buf+2, "%d %d %d", &f1, &f2, &f3); 
-                        else
-                            sscanf(buf+2, "%d %d %d", &f1, &f2, &f3); 
+                    if (not has_normals) {
+                        if (cnt == 3) {
+                            // sscanf(buf+2, "%d %d %d", &f1, &f2, &f3); 
+                            f1 = strtol(buf+2, &end, 10);
+                            f2 = strtol(end, &end, 10);
+                            f3 = strtol(end, NULL, 10);
+                        } else {
+                            sscanf(buf+2, "%d %d %d %d", &f1, &f2, &f3, &f4); 
+                        }
                     } else {
-                        has_normals = true;
-                        if (strstr(p1, "//"))
+                        if (strstr(buf, "//")) // FIXME optimize that
                             if (cnt == 3)
                                 sscanf(buf+2, "%d//%d %d//%d %d//%d", 
                                     &f1, &n1, &f2, &n2, &f3, &n3);

@@ -36,7 +36,7 @@ public:
 
     OglSdk() { 
         verbose = false;
-        render_mode = buffer; // display_list; 
+        render_mode = buffer; // buffer; // display_list; 
         max_uint = std::numeric_limits<GLuint>::max();
         list = max_uint;
         model = NULL;
