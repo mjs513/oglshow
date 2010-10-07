@@ -436,8 +436,17 @@ public:
 		v = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 		f = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	
 	
-		vs = textFileRead((char*) string("toon.vert").c_str());
-		fs = textFileRead((char*) string("toon.frag").c_str());
+#if 0
+        #define VERT "toon.vert"
+        #define FRAG "toon.frag"
+#endif
+#if 1
+        // http://www.ozone3d.net/tutorials/glsl_lighting_phong_p2.php
+        #define VERT "pointlight.vert"
+        #define FRAG "pointlight.frag"
+#endif
+		vs = textFileRead((char*) string(VERT).c_str());
+		fs = textFileRead((char*) string(FRAG).c_str());
 	
 		const char * vv = vs;
 		const char * ff = fs;
