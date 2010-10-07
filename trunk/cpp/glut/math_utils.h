@@ -3,8 +3,8 @@
 #include <math.h>
 #include <algorithm>
 
-typedef struct vertex { float x, y, z; };
-typedef struct face   { int p1, p2, p3; };
+typedef struct vertex { float x, y, z; }; // __attribute__ ((aligned)); 
+typedef struct face   { int p1, p2, p3; }; // __attribute__ ((aligned));
 typedef struct quaternion { float qx, qy, qz, qw; };
 typedef struct matrix { float m00, m01, m02,
                               m10, m11, m12,

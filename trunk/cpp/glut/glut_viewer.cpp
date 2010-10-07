@@ -36,6 +36,18 @@ void ogl_display(void) {
     // FIXME glutSetWindowTitle('FPS: ' + sdk.fps)'
     glutSwapBuffers(); 
     c.get();
+
+#define        GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX          0x9047
+#define        GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX    0x9048
+#define        GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX  0x9049
+#define        GPU_MEMORY_INFO_EVICTION_COUNT_NVX            0x904A
+#define        GPU_MEMORY_INFO_EVICTED_MEMORY_NVX            0x904B
+
+    GLint dedicated, total, current;
+    glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total);
+    glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total);
+    glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &current);
+    printf("dedicated %d total %d current %d\n", dedicated, total, current);
 }
 
 void ogl_reshape(int w, int h) {
@@ -65,6 +77,7 @@ int main(int argc, char** argv) {
     // glutInitWindowPosition(100, 100):
     glutInitWindowSize(sdk.w, sdk.h);
     (void)glutCreateWindow("oglshow");
+    glewInit();
 
     glutKeyboardFunc(ogl_processNormalKeys);
 
