@@ -7,6 +7,7 @@ using std::string;
 using std::cout;
 using std::endl;
 
+#include "GL/glew.h"
 #include <GLUT/glut.h>
 #include "scene.h"
 
@@ -119,7 +120,7 @@ public:
 #endif
     void draw_bg() {
         glDisable(GL_DEPTH_TEST);
-    
+
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
@@ -132,7 +133,7 @@ public:
         glColor3ub(24, 26, 28); // Bottom / Blue
         glVertex2f(-1.0,-1.0);
         glVertex2f(1.0,-1.0);
-        
+
         glColor3ub(126, 145, 165); // Top / Red
         glVertex2f(1.0, 1.0);
         glVertex2f(-1.0, 1.0);
@@ -241,7 +242,7 @@ public:
     void send_geometry() {
         GLubyte diffuse[3] = { 51.0, 51.0, 255.0 };
         glColor3ubv( diffuse );
-        
+
         glBegin(GL_TRIANGLES);
         for (size_t i = 0; i < scene.faces.size(); ++i) {
 
@@ -278,7 +279,7 @@ public:
             // glInitVertexBufferObjectARB(); // PyOpenGL only ... ?
             glGenBuffersARB(1, &vbo);
             model = new gl_vertex[3 * scene.faces.size()];
-        
+
             for (size_t i = 0; i < scene.faces.size(); ++i) {
 
                 face f = scene.faces[i];
@@ -392,7 +393,7 @@ public:
             printf("gluLookAt vup ");
             print_vert(vup);
         }
-        
+
         gluLookAt (	view.eye.x,  view.eye.y,  view.eye.z,
                     view.tget.x, view.tget.y, view.tget.z,
                     vup.x,  vup.y,  vup.z  );

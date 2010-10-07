@@ -247,6 +247,7 @@ public:
         for (size_t i = 0; i < verts.size(); ++i) {
             vert_faces[i].reserve(3);
         }
+        puts("Allocation done");
 
         // #pragma omp parallel for 
         for (size_t i = 0; i < faces.size(); ++i) {
@@ -277,7 +278,7 @@ public:
         // #pragma omp parallel for 
         for (size_t i = 0; i < faces.size(); ++i) {
             // printf("\r%zu", i);
-            
+
             float X, Y, Z;
             size_t cnt;
             vector<int>::const_iterator it, end;
@@ -290,9 +291,11 @@ public:
                 vertex v = triangle_normals[*it];
                 X += v.x; Y += v.y; Z += v.z;
             }
-            
+
             vertex N = { X/cnt, Y/cnt, Z/cnt };
-            normals[3*k] = vnorm(N);
+            normals[k] = N; // vnorm(N);
+            normalize( normals[k] );
+            k++;
 
             X = 0.0f; Y = 0.0f; Z = 0.0f;
             it  = vert_faces[ faces[i].p2 ].begin();
@@ -302,9 +305,11 @@ public:
                 vertex v = triangle_normals[*it];
                 X += v.x; Y += v.y; Z += v.z;
             }
-            
+
             vertex P = { X/cnt, Y/cnt, Z/cnt };
-            normals[3*k+1] = vnorm(P);
+            normals[k] = P;
+            normalize( normals[k] );
+            k++;
 
             X = 0.0f; Y = 0.0f; Z = 0.0f;
             it  = vert_faces[ faces[i].p3 ].begin();
@@ -314,10 +319,11 @@ public:
                 vertex v = triangle_normals[*it];
                 X += v.x; Y += v.y; Z += v.z;
             }
-            
+
             vertex R = { X/cnt, Y/cnt, Z/cnt };
-            normals[3*k+2] = vnorm(R);
-            k += 1;
+            normals[k] = R;
+            normalize( normals[k] );
+            k++;
         }
         puts("\nnorms computed");
 

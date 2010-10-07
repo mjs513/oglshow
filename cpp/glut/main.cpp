@@ -55,12 +55,28 @@ int test4() {
 }
 
 int test5() {
-    Scene sc = load("../../py/test/data/blade.obj");
-    // Scene sc = load("../../py/test/data/lucy.obj");
+    // Scene sc = load("../../py/test/data/blade.obj");
+    Scene sc = load("../../py/test/data/lucy.obj");
     puts("loaded");
     Chrono c;
     sc.compute_normals();
     printf("compute normals: "); c.get();
+}
+
+int test6() {
+    Chrono c;
+
+    vector<face> faces(28 * 1e6);
+    vector<vertex> verts(14 * 1e6);
+
+    vertex* triangle_normals = new vertex[faces.size()];
+    vector<int>* vert_faces = new vector<int>[verts.size()];
+    vector<vertex> normals;
+    normals.resize(3 * faces.size());
+    vector<face> faces_normals;
+    faces_normals.resize(faces.size());
+
+    printf("Alloc: "); c.get();
 }
 
 int main() {
