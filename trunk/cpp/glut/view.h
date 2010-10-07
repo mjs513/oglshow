@@ -216,6 +216,8 @@ public:
         set_default_light();
         set_matrix(scene.view);
         render_obj();
+
+        set_shaders(); // FIXME, dont call me at every frame being rendered
     }
 
     void render_obj() {
@@ -398,4 +400,63 @@ public:
                     view.tget.x, view.tget.y, view.tget.z,
                     vup.x,  vup.y,  vup.z  );
     }
+
+    char *textFileRead(char *fn) {
+        FILE *fp;
+        char *content = NULL;
+
+        int count=0;
+
+        if (fn != NULL) {
+            fp = fopen(fn,"rt");
+
+            if (fp != NULL) {
+
+                fseek(fp, 0, SEEK_END);
+                count = ftell(fp);
+                rewind(fp);
+
+                if (count > 0) {
+                    content = (char *)malloc(sizeof(char) * (count+1));
+                    count = fread(content,sizeof(char),count,fp);
+                    content[count] = '\0';
+                }
+                fclose(fp);
+            }
+        }
+        return content;
+    }
+    
+
+    void set_shaders() {
+	
+        GLhandleARB p,f,v;
+		char *vs,*fs;
+	
+		v = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+		f = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	
+	
+		vs = textFileRead((char*) string("toon.vert").c_str());
+		fs = textFileRead((char*) string("toon.frag").c_str());
+	
+		const char * vv = vs;
+		const char * ff = fs;
+	
+		glShaderSourceARB(v, 1, &vv,NULL);
+		glShaderSourceARB(f, 1, &ff,NULL);
+	
+		free(vs);free(fs);
+	
+		glCompileShaderARB(v);
+		glCompileShaderARB(f);
+	
+		p = glCreateProgramObjectARB();
+		
+		glAttachObjectARB(p,v);
+		glAttachObjectARB(p,f);
+	
+		glLinkProgramARB(p);
+		glUseProgramObjectARB(p);
+	}
+    
 };
