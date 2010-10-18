@@ -79,7 +79,11 @@ int test6() {
     printf("Alloc: "); c.get();
 }
 
+int test7() {
+
+}
+
 int main() {
-    test5();
+    test7();
     return 0;
 }
