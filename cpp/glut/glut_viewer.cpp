@@ -35,8 +35,9 @@ void ogl_display(void) {
     sdk.render();
     // FIXME glutSetWindowTitle('FPS: ' + sdk.fps)'
     glutSwapBuffers(); 
-    c.get();
 
+#if 0
+    c.get();
 #define        GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX          0x9047
 #define        GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX    0x9048
 #define        GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX  0x9049
@@ -48,6 +49,7 @@ void ogl_display(void) {
     glGetIntegerv(GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total);
     glGetIntegerv(GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &current);
     printf("dedicated %d total %d current %d\n", dedicated, total, current);
+#endif
 }
 
 void ogl_reshape(int w, int h) {

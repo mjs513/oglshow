@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <string>
 #include <iostream>
 #include <limits>
@@ -217,7 +218,9 @@ public:
         set_matrix(scene.view);
         render_obj();
 
-        set_shaders(); // FIXME, dont call me at every frame being rendered
+        // set_shaders(); // FIXME, dont call me at every frame being rendered
+        // assert (glGetError() == GL_NO_ERROR);
+        on_screen_display("Hello world");
     }
 
     void render_obj() {
@@ -426,7 +429,6 @@ public:
         }
         return content;
     }
-    
 
     void set_shaders() {
 	
@@ -468,4 +470,35 @@ public:
 		glUseProgramObjectARB(p);
 	}
     
+    void on_screen_display(const char* msg) {
+        // assert (glGetError() == GL_NO_ERROR);
+        glDisable(GL_COLOR_MATERIAL);
+        glDisable(GL_LIGHTING);
+
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        gluOrtho2D(0.0, w, 0.0, h);
+
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+
+        glColor3f(0.0, 1.0, 0.0); // Green
+
+        glRasterPos2i(10, h - 20);
+
+        void * font = GLUT_BITMAP_9_BY_15;
+        for (int i = 0; msg[i] != '\0' ; ++i) {
+            glutBitmapCharacter(font, msg[i]);
+        }
+
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+
+    }
+
 };
