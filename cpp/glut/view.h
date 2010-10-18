@@ -36,6 +36,48 @@ public:
     GLuint vbo;
     gl_vertex* model;
 
+    class OSD {
+    public:
+        int w,h;
+        vector<string> strings;
+
+        OSD() {}
+        void draw() {
+            // assert (glGetError() == GL_NO_ERROR);
+            glDisable(GL_COLOR_MATERIAL);
+            glDisable(GL_LIGHTING);
+
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix();
+            glLoadIdentity();
+            gluOrtho2D(0.0, w, 0.0, h);
+
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glLoadIdentity();
+
+            glColor3f(0.0, 1.0, 0.0); // Green
+            void * font = GLUT_BITMAP_9_BY_15;
+
+            for (int i = 0; i < strings.size(); ++i) {
+                glRasterPos2i(10, h - 20 * (i+1));
+
+                for (int j = 0; j < strings[i].size() ; ++j) {
+                    char c = strings[i][j];
+                    glutBitmapCharacter(font, c);
+                }
+            }
+
+            glMatrixMode(GL_MODELVIEW);
+            glPopMatrix();
+
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+        }
+    };
+
+    OSD osd;
+
     OglSdk() { 
         verbose = false;
         render_mode = buffer; // buffer; // display_list; 
@@ -219,8 +261,10 @@ public:
         render_obj();
 
         // set_shaders(); // FIXME, dont call me at every frame being rendered
-        // assert (glGetError() == GL_NO_ERROR);
-        on_screen_display("Hello world");
+        osd.strings.push_back("Hello world");
+        osd.strings.push_back("Salut salut world");
+        osd.draw();
+        osd.strings.clear();
     }
 
     void render_obj() {
@@ -346,6 +390,8 @@ public:
         glViewport(0, 0, w, h);
         w = _w;
         h = _h;
+        osd.w = w;
+        osd.h = h;
     }
 
     void set_matrix(View& view) {
@@ -470,35 +516,4 @@ public:
 		glUseProgramObjectARB(p);
 	}
     
-    void on_screen_display(const char* msg) {
-        // assert (glGetError() == GL_NO_ERROR);
-        glDisable(GL_COLOR_MATERIAL);
-        glDisable(GL_LIGHTING);
-
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        gluOrtho2D(0.0, w, 0.0, h);
-
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-
-        glColor3f(0.0, 1.0, 0.0); // Green
-
-        glRasterPos2i(10, h - 20);
-
-        void * font = GLUT_BITMAP_9_BY_15;
-        for (int i = 0; msg[i] != '\0' ; ++i) {
-            glutBitmapCharacter(font, msg[i]);
-        }
-
-        glMatrixMode(GL_MODELVIEW);
-        glPopMatrix();
-
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-
-    }
-
 };
