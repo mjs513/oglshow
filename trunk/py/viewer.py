@@ -118,7 +118,7 @@ class OglSdk:
         # self.do_immediate_mode = False # TEST
         self.use_display_list = False
 
-        self.do_immediate_mode = False
+        self.do_immediate_mode = True
         self.do_vbo = not self.do_immediate_mode
         self.vbo_init = False
 
@@ -129,6 +129,7 @@ class OglSdk:
         with benchmark('load from disk'):
             self.scene = load(fn, verbose)
         if not self.scene: return
+        self.fn = fn
 
         if self.use_display_list:
             self.dl = [-1 for i in self.scene.objets]
@@ -142,6 +143,8 @@ class OglSdk:
         # Grid setup
         if self.octree:
             setup_octree()
+
+        return self.scene
 
     def setup_octree(self):
         with benchmark('build octree'):
@@ -219,6 +222,8 @@ class OglSdk:
             Extensions = glGetString (GL_EXTENSIONS)
             for ext in Extensions.split():
                 print ext
+
+        return self.VBO_vertex, self.VBO_normal
 
     def pointer_move(self, m, xstart, ystart, xend, yend):
         if not self.scene: return
@@ -456,18 +461,27 @@ class OglSdk:
                 # Order: texture, normal, points
                 if False and p.coord_mapping:
                     glTexCoord2f(*p.coord_mapping)
-                if False and p.normal:
+                if p.normal:
                     glNormal3f(*p.normal)
                 glVertex3f(*p)
 
-            for t in sc.faces:
+            for j in xrange(len(sc.faces)):
+                t = sc.faces[j]
                 p1 = sc.points[t[0]]
                 p2 = sc.points[t[1]]
                 p3 = sc.points[t[2]]
 
-                send_point_to_gl(p1)
-                send_point_to_gl(p2)
-                send_point_to_gl(p3)
+                n = sc.faces_normals[j]
+                n1 = sc.normals[n[0]]
+                n2 = sc.normals[n[1]]
+                n3 = sc.normals[n[2]]
+
+                glNormal3f(*n1)
+                glVertex3f(*p1)
+                glNormal3f(*n2)
+                glVertex3f(*p2)
+                glNormal3f(*n3)
+                glVertex3f(*p3)
 
             glEnd()
 

@@ -6,7 +6,7 @@ from scene import load
 from math_utils import vcross, vnorm, sub
 from utils import _err_exit, notYetImplemented, benchmark
 
-def compute_normals(sc):
+def compute_normals_hash(sc):
     out = []
     triangle_normals = len(sc.faces) * [ [.0, .0, .0] ]
 
@@ -38,7 +38,6 @@ def compute_normals(sc):
         p2 = sc.points[t[1]]
         p3 = sc.points[t[2]]
 
-        face_normals = []
         for point in [p1, p2, p3]:
             # we assume no collisions in the hash
             value = pt_table[hash(point)]
@@ -69,3 +68,51 @@ def compute_normals(sc):
         i += 1
 
     return normals, faces_normals
+
+def compute_normals_fast(sc):
+    out = []
+    triangle_normals = range(len(sc.faces))
+    vert_faces  = [[] for _ in sc.points]
+
+    for i, t in enumerate(sc.faces):
+
+        # Compute face normal
+        p1 = sc.points[t[0]]
+        p2 = sc.points[t[1]]
+        p3 = sc.points[t[2]]
+        normal = vcross(sub(p2, p1), sub(p3, p1))
+        normal = vnorm(normal)
+        triangle_normals[i] = normal
+
+        # add triangles in point/triangle table
+        vert_faces[t[0]].append(i)
+        vert_faces[t[1]].append(i)
+        vert_faces[t[2]].append(i)
+
+    i = 0
+    normals = []
+    faces_normals = []
+    for t in sc.faces:
+        for fv in t:
+            X, Y, Z = 0, 0, 0
+            for incident_face in vert_faces[fv]:
+                x, y, z = triangle_normals[incident_face]
+                X += x
+                Y += y
+                Z += z
+            
+            cnt = len(vert_faces[fv])
+            N = (X/cnt, Y/cnt, Z/cnt)
+
+            # normalize normal
+            N = vnorm(N)
+
+            # print N
+            normals.append(N)
+
+        faces_normals.append( (3*i, 3*i+1, 3*i+2) )
+        i += 1
+
+    return normals, faces_normals
+
+compute_normals = compute_normals_fast
