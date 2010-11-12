@@ -69,6 +69,10 @@ static void init(int width, int height) {
 /*
  * Create an RGB, double-buffered window.
  * Return the window and context handles.
+ *
+ * See also http://www.opengl.org/sdk/docs/man/xhtml/glXChooseFBConfig.xml
+ *
+ * See also http://www.google.com/codesearch/p?hl=en#I0cABDTB4TA/pub/FreeBSD/ports/distfiles/MesaDemos-6.5.1.tar.bz2%7CHPWcww5QqTk/Mesa-6.5.1/progs/xdemos/xfont.c&q=glxgears&d=8
  */
 static void
 make_window( Display *dpy, const char *name,
@@ -76,10 +80,10 @@ make_window( Display *dpy, const char *name,
              Window *winRet, GLXContext *ctxRet)
 {
    int attrib[] = { GLX_RGBA,
-                    GLX_RED_SIZE, 1,
-                    GLX_GREEN_SIZE, 1,
-                    GLX_BLUE_SIZE, 1,
-                    GLX_DOUBLEBUFFER,
+                    GLX_RED_SIZE, 8,
+                    GLX_GREEN_SIZE, 8,
+                    GLX_BLUE_SIZE, 8,
+                    GLX_DOUBLEBUFFER, 1,
                     GLX_DEPTH_SIZE, 1,
                     None };
    int scrnum;
